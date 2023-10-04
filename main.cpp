@@ -43,11 +43,12 @@ Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
 int main() {
 
     Screen* screen = new Menu_screen(0);
+    // init random
+    srand(time(NULL));
 
     if (!screen->init_all()) {
         return 0;
     }
-    std::cerr << "screen created\n";
 
     // wait for user to select what mode
     int status = 2;

@@ -6,6 +6,11 @@
 #include <cmath>
 #include <SDL2/SDL_ttf.h>
 #include <vector>
+#include <map>
+#include <numeric>
+#include <algorithm>
+#include <fstream>
+#include <cassert>
 
 //Screen dimension constants
 const int TEXT_SIZE = 60;
@@ -34,8 +39,33 @@ struct connect_four_board {
     int selected_col;
     int selected_row;
     int board[6][7];
+    int game_state;
     SDL_Circle circles[6][7];
     SDL_Rect rect;
+
+    bool win();
+};
+
+struct MCTS {
+    std::map<int, int> wins;
+    std::map<int, int> sims;
+    float c;
+
+    float UCT(int v, int p);
+    int get_parent(int v);
+
+    void run(int num_roll_outs, connect_four_board board);
+    void select(connect_four_board &board);
+    void expand(connect_four_board &board);
+    int roll_out(connect_four_board board);
+    void backup(int game_state, int result); // result either 1 (w), 0 (t), or -1 (l) ?
+
+    int get_best_move(connect_four_board board);
+
+    void play(connect_four_board &board);
+
+    void save();
+    void load();
 };
 
 enum {
@@ -66,18 +96,21 @@ struct Screen {
 
 struct Connect_four_screen : public Screen {
     int AI_player;
-    Connect_four_screen(int AI_player) : AI_player(AI_player) {};
+    MCTS mcts;
+    Connect_four_screen(int AI_player) : AI_player(AI_player) {
+        mcts.c = 1.0f / sqrt(2.0f); // TODO: this is just something github copilot suggested
+    };
 
     bool init();
     int loop();
     void close();
 
-    bool win();
     void render_board();
     void falling();
+    void pick_col(int col);
     int play();
     int DQN();
-    int MCTS();
+    int MCTS_func();
 };
 
 struct End_screen : public Screen {
@@ -100,15 +133,6 @@ struct Menu_screen : public Screen {
     void close();
 
     void render_screen();
-};
-
-struct MCTS {
-    std::vector<int> values;
-    std::vector<int> visits;
-    std::vector<std::vector<int>> graph;
-    int c;
-
-    float UCB(int v, int p);
 };
 
 #endif //CONNECT_FOUR_GAME_H

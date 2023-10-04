@@ -72,17 +72,18 @@ void Connect_four_screen::render_board() {
     }
 }
 
-bool Connect_four_screen::win() {
+bool connect_four_board::win() {
     // the last tile has beeen placed at board.selected_row, board.selected_col
-    int row = board.selected_row;
-    int col = board.selected_col;
-    int turn = board.turn;
+    int row = selected_row;
+    int col = selected_col;
 
     // win horizontally
     for (int i = std::max(0, row-4); i < std::min(6-4+1, row+4); i++) {
         bool win = true;
         for (int j = 0; j < 4; j++) {
-            if (board.board[i+j][col] != turn) {
+            assert(i+j < 6);
+            assert(i+j >= 0);
+            if (board[i+j][col] != turn) {
                 win = false;
                 break;
             }
@@ -94,7 +95,9 @@ bool Connect_four_screen::win() {
     for (int i = std::max(0, col-4); i < std::min(7-4+1, col+4); i++) {
         bool win = true;
         for (int j = 0; j < 4; j++) {
-            if (board.board[row][i+j] != turn) {
+            assert(i+j < 7);
+            assert(i+j >= 0);
+            if (board[row][i+j] != turn) {
                 win = false;
                 break;
             }
@@ -109,7 +112,11 @@ bool Connect_four_screen::win() {
         int i = row+it;
         int j = col+it;
         for (int k = 0; k < 4; k++) {
-            if (board.board[i+k][j+k] != turn) {
+            assert(i+k < 6);
+            assert(i+k >= 0);
+            assert(j+k < 7);
+            assert(j+k >= 0);
+            if (board[i+k][j+k] != turn) {
                 win = false;
                 break;
             }
@@ -120,11 +127,15 @@ bool Connect_four_screen::win() {
     // win diagonally down left to up right
     for (int it = -3; it < 4; it++) {
         bool win = true;
-        if (row + it < 0 || row + it + 3 >= 6 || col - it < 0 || col - it - 3 >= 7) continue;
+        if (row + it < 0 || row + it + 3 >= 6 || col - it - 3 < 0 || col - it >= 7) continue;
         int i = row+it;
         int j = col-it;
         for (int k = 0; k < 4; k++) {
-            if (board.board[i+k][j-k] != turn) {
+            assert(i+k < 6);
+            assert(i+k >= 0);
+            assert(j-k < 7);
+            assert(j-k >= 0);
+            if (board[i+k][j-k] != turn) {
                 win = false;
                 break;
             }
@@ -154,6 +165,8 @@ bool Connect_four_screen::init() {
             board.circles[i][j] = { x+ 100 + 100 * j, y + 100 + 100 * i, 40 };
         }
     }
+
+    mcts.load();
 
     return 1;
 }
@@ -219,10 +232,10 @@ int Connect_four_screen::loop() { // 0: TIE, 1: player1, -1: player2, 2: continu
     if (AI_player == board.turn) ret = DQN();
     if (AI_player == 3) {
         if (board.turn == 1) ret = DQN();
-        else ret = MCTS();
+        else ret = MCTS_func();
     }
     if (AI_player == 4) {
-        if (board.turn == 1) ret = MCTS();
+        if (board.turn == 1) ret = MCTS_func();
         else ret = DQN();
     }
 
@@ -240,11 +253,20 @@ int Connect_four_screen::play() {
         falling();
 
         // checks if the Connect_four_screen is over
-        if (win()) {
+        if (board.win()) {
             board.turn = -board.turn;
             SDL_RenderClear(renderer);
             render_board();
             SDL_RenderPresent(renderer);
+
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < 7; j++){
+                    std::cerr << board.board[i][j]+1 << " ";
+                }
+                std::cerr << "\n";
+            }
+
+            if (AI_player >= 3) mcts.save();
             return -board.turn;
         }
 
@@ -276,22 +298,42 @@ void Connect_four_screen::falling() {
 
     // updates the board
     board.board[board.selected_row][board.selected_col] = board.turn;
+    board.game_state = 7*board.selected_row+board.selected_col+1;
 }
 
 int Connect_four_screen::DQN() {
+    return MCTS_func();
     // THIS IS CURRENTLY STUPID AI
     int col = rand() % 7;
     while (board.board[0][col] != 0) col = rand() % 7;
 
+    pick_col(col);
+
+    return play();
+}
+
+int Connect_four_screen::MCTS_func() {
+    mcts.run(100, board);
+    int col = mcts.get_best_move(board);
+    pick_col(col);
+    return play();
+}
+
+void Connect_four_screen::close() {
+    // free memory
+}
+
+void Connect_four_screen::pick_col(int col) {
     // a cool animation for selecting the column
     while (board.selected_col != col) {
         int add = 1;
         if (board.selected_col > col) add = -1;
 
         // it is thinking really hard
-        if (rand()%5 == 0) add = -add;
+        //if (rand()%5 == 0) add = -add;
 
         board.selected_col += add;
+        if (board.selected_col < 0) board.selected_col = 0;
 
         SDL_RenderClear(renderer);
         render_board();
@@ -300,18 +342,8 @@ int Connect_four_screen::DQN() {
         SDL_RenderPresent(renderer);
 
         // also thinking a lot
-        SDL_Delay(rand()%900);
+        //SDL_Delay(rand()%900);
     }
-
-    return play();
-}
-
-int Connect_four_screen::MCTS() {
-    return DQN();
-}
-
-void Connect_four_screen::close() {
-    // free memory
 }
 
 bool Screen::init_all() {
