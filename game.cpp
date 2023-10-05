@@ -38,15 +38,16 @@ void Connect_four_screen::render_board() {
     for (int x_pixel = board.rect.x; x_pixel < board.rect.x + board.rect.w; x_pixel++) {
         for (int y_pixel = board.rect.y; y_pixel < board.rect.y + board.rect.h; y_pixel++) {
             // iterates over the circles vector and checks if the pixel is in the circle
-            bool in_circle = 0;
+            bool in_circle = false;
             for (int row_circle = 0; row_circle < 6; row_circle++) {
                 if ((x_pixel - board.circles[row_circle][board.selected_col].x) * (x_pixel - board.circles[row_circle][board.selected_col].x) +
                     (y_pixel - board.circles[row_circle][board.selected_col].y) * (y_pixel - board.circles[row_circle][board.selected_col].y) <=
                     board.circles[row_circle][board.selected_col].r * board.circles[row_circle][board.selected_col].r) {
-                    in_circle = 1;
+                    in_circle = true;
                     break;
                 }
             }
+            // color the pixel if it is not in the circle
             if (!in_circle) {
                 set_col(renderer, DARK_BLUE);
                 SDL_RenderDrawPoint(renderer, x_pixel, y_pixel);
@@ -73,7 +74,7 @@ void Connect_four_screen::render_board() {
 }
 
 bool connect_four_board::win() {
-    // the last tile has beeen placed at board.selected_row, board.selected_col
+    // place of last tile
     int row = 5;
     while (board[row][selected_col] != 0) {
         row--;
@@ -152,8 +153,8 @@ bool connect_four_board::win() {
 }
 
 bool Connect_four_screen::init() {
-    // init board
 
+    // init board
     int x = (SCREEN_WIDTH - 800) / 2;
     int y = (SCREEN_HEIGHT - (700-150+TEXT_SIZE+TEXT_DIST)) / 2; // 150 is the offset from the top
 
@@ -171,6 +172,7 @@ bool Connect_four_screen::init() {
         }
     }
 
+    // init mcts
     mcts.load();
     mcts.c = 0;
     mcts.gamma = 0.95f;
@@ -220,22 +222,21 @@ int Connect_four_screen::loop() { // 0: TIE, 1: player1, -1: player2, 2: continu
         }
     }
 
-    // clears the screen
+    // updates screen
     SDL_RenderClear(renderer);
-
-    // renders board
     render_board();
     set_col(renderer, WHITE);
-
-    // display on screen
     SDL_RenderPresent(renderer);
 
     // calculates to 60 fps
     SDL_Delay(1000 / 60);
 
+    // tie
     if (board.turns == 42) return 0;
 
     ret = 2;
+
+    // handle single player
     if (AI_player == board.turn) ret = DQN();
     if (AI_player == 3) {
         if (board.turn == 1) ret = DQN();
@@ -256,10 +257,10 @@ int Connect_four_screen::play() {
     }
     if (board.selected_row >= 0) {
 
-        // cool animation
+        // animation for falling of tile
         falling();
 
-        // checks if the Connect_four_screen is over
+        // checks game is over
         if (board.win()) {
             board.turn = -board.turn;
             SDL_RenderClear(renderer);
@@ -286,6 +287,7 @@ int Connect_four_screen::play() {
 }
 
 void Connect_four_screen::falling() {
+
     // animation of the piece falling
     SDL_Circle falling_circle = {board.circles[board.selected_row][board.selected_col].x, board.rect.y - 70, 40 };
     while (falling_circle.y < board.circles[board.selected_row][board.selected_col].y) {
@@ -321,17 +323,17 @@ int Connect_four_screen::DQN() {
 
 int Connect_four_screen::MCTS_func() {
     mcts.run(100, board);
+
     int col = mcts.get_best_move(board);
     pick_col(col);
+
     return play();
 }
 
-void Connect_four_screen::close() {
-    // free memory
-}
+void Connect_four_screen::close() {}
 
 void Connect_four_screen::pick_col(int col) {
-    // a cool animation for selecting the column
+    // animation for selecting column
     while (board.selected_col != col) {
         int add = 1;
         if (board.selected_col > col) add = -1;
@@ -348,7 +350,6 @@ void Connect_four_screen::pick_col(int col) {
         set_col(renderer, WHITE);
         SDL_RenderPresent(renderer);
 
-        // also thinking a lot
         //SDL_Delay(rand()%900);
         SDL_Delay(200);
     }
@@ -359,25 +360,25 @@ bool Screen::init_all() {
         return 0;
     }
 
-    // returns zero on success else non-zero
+    // init SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cout << "error initializing SDL: " << SDL_GetError() << "\n";
+        std::cout << "Error initializing SDL: " << SDL_GetError() << "\n";
         return 0;
     }
 
-
+    // init SDL_ttf
     if (TTF_Init() < 0) {
         std::cout << "Error initializing SDL_ttf: " << TTF_GetError() << "\n";
     }
 
     // renderer to render images
     renderer = SDL_CreateRenderer(SDL_CreateWindow("CONNECT FOUR",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,SCREEN_WIDTH, SCREEN_HEIGHT, 0), -1, 0);
-    //exit(0);
     if (renderer == NULL) {
         std::cout << "Error initializing SDL renderer: " << SDL_GetError() << "\n";
         return 0;
     }
 
+    // set background color
     set_col(renderer, WHITE);
     SDL_RenderClear(renderer);
 
@@ -398,12 +399,15 @@ void Screen::close_all() {
 }
 
 void Screen::display_text(const char* text, int x, int y, int size, bool show_text_field, int start_x, int width, SDL_Color col) {
+    // get font
     font = TTF_OpenFont("01211_AHDSANSB.ttf", size);
     if (font == NULL) std::cout << "error loading font: " << TTF_GetError() << "\n";
 
+    // create surface
     surface = TTF_RenderText_Solid(font, text, DARK_BLACK);
     if (surface == NULL) std::cout << "error creating surface: " << TTF_GetError() << "\n";
 
+    // create texture from surface
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     if (texture == NULL) std::cout << "error creating texture: " << TTF_GetError() << "\n";
 
@@ -419,21 +423,20 @@ void Screen::display_text(const char* text, int x, int y, int size, bool show_te
     text_field.w = w;
     text_field.h = h;
 
+    // display text field
     if (show_text_field) {
         set_col(renderer, col);
         SDL_Rect larger_text_field = {start_x, text_field.y - 30, width, text_field.h + 2 * 30};
         SDL_RenderFillRect(renderer, &larger_text_field);
     }
 
-    // TODO: somehow this line is causing a bugger BUT MAYBE I FIXED IT
-    // and only if all the code regarding the rendering text on menu screen stays EXACTLY
-    // &text_field
+    // display text
     SDL_RenderCopy(renderer, texture, NULL, &text_field);
 
+    // close and free
     SDL_DestroyTexture(texture);
     TTF_CloseFont(font);
     SDL_FreeSurface(surface);
-
 }
 
 bool End_screen::init() {
@@ -448,14 +451,13 @@ bool End_screen::init() {
 }
 
 int End_screen::loop() {
-    // get event
     SDL_Event event;
 
+    // handles events
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
 
             case SDL_QUIT:
-                // handling of close button
                 return 0;
 
             default:
@@ -479,18 +481,16 @@ void Menu_screen::close() {
 }
 
 int Menu_screen::loop() {
-    // get event
     SDL_Event event;
 
+    // handles events
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
 
             case SDL_QUIT:
-                // handling of close button
                 return -2;
 
             case SDL_KEYDOWN: {
-                // keyboard API for key pressed
                 switch (event.key.keysym.scancode) {
 
                     case SDL_SCANCODE_UP:
@@ -514,9 +514,9 @@ int Menu_screen::loop() {
         }
     }
 
+    // updates screen
     SDL_RenderClear(renderer);
     render_screen();
-
     set_col(renderer, WHITE);
     SDL_RenderPresent(renderer);
 
@@ -530,6 +530,7 @@ void Menu_screen::render_screen() {
     std::vector<std::string> text = {"YOU START", "2 PLAYER", "AI STARTS", "DQN VS MCTS", "MCTS VS DQN"};
     std::vector<int> y_pos = {SCREEN_HEIGHT/6, 2*SCREEN_HEIGHT/6, 3*SCREEN_HEIGHT/6, 4*SCREEN_HEIGHT/6, 5*SCREEN_HEIGHT/6};
 
+    // display buttons
     for (int i = 0; i < 5; i++) {
         if (i == selected) {
             display_text(text[i].c_str(), -1, y_pos[i], TEXT_SIZE, 1, x, w, DARK_GREEN);

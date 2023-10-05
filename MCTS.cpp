@@ -1,7 +1,7 @@
 #include "game.h"
 
 float MCTS::UCT(int128 v, int128 p) {
-    if (sims.find(v) == sims.end() || sims.find(p) == sims.end() || wins.find(v) == wins.end()) return 0; // idk if this is the correct fix
+    if (sims.find(v) == sims.end() || sims.find(p) == sims.end() || wins.find(v) == wins.end()) return 0;
     return wins[v]/sims[v] + c*sqrt(log(sims[p])/sims[v]);
 }
 
@@ -22,7 +22,7 @@ void MCTS::run(int num_roll_outs, connect_four_board board) {
 
 void MCTS::select(connect_four_board &board) {
 
-    while (true) {
+    while (true) { // loop until leaf node reached
         int best_col = -1;
         int best_uct = 0;
 
@@ -46,9 +46,9 @@ void MCTS::select(connect_four_board &board) {
 
         board.game_state = 7*board.game_state+best_col+1;
         board.selected_col = best_col;
-        play(board);
+        play(board); // play selected move
 
-        if (board.win() || board.turns == 42) { // by always taking best UCT value, game will end
+        if (board.win() || board.turns == 42) { // game ended
             return;
         }
     }
@@ -72,7 +72,7 @@ void MCTS::expand(connect_four_board &board) {
 int MCTS::roll_out(connect_four_board board) {
     int result = 0;
 
-    while (!board.win() && board.turns < 42) { // simulate until game ends
+    while (!board.win() && board.turns < 42) { // simulate until game ends by selecting random moves
         std::vector<int> moves (7);
         std::iota(moves.begin(), moves.end(), 0);
         std::random_shuffle(moves.begin(), moves.end());
@@ -128,10 +128,12 @@ int MCTS::get_best_move(connect_four_board board) {
 }
 
 void MCTS::play(connect_four_board &board) {
+    // find lowest empty row in selected column
     while (board.board[board.selected_row][board.selected_col] != 0) {
         board.selected_row--;
         if (board.selected_row < 0) break;
     }
+    // play move
     if (board.selected_row >= 0) {
         board.board[board.selected_row][board.selected_col] = board.turn;
         board.turns++;
@@ -156,8 +158,7 @@ void MCTS::save(std::string filename) {
 void MCTS::load() {
     std::string filename = "mcts.txt";
     std::ifstream in(filename);
-    // in file there are two lines, one for sims and one for wins
-    // each line is a list of key:value pairs separated by spaces
+
     for (int i = 0; i < 2; i++) {
         std::string line;
         std::getline(in, line);
@@ -202,6 +203,7 @@ void MCTS::train(int num_roll_outs, int num_games) {
         board.turns = 0;
         board.selected_row = 5;
 
+        // play game
         while (true) {
             run(num_roll_outs, board);
             int col = get_best_move(board);
