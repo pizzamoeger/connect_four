@@ -40,7 +40,22 @@ Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
     return screen;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    // init random seed
+    srand(time(NULL));
+
+    if (argc > 1) { // train mcts
+        std::cerr << "training mcts\n";
+        int num_roll_outs = atoi(argv[1]);
+        int num_games = atoi(argv[2]);
+        MCTS mcts;
+        mcts.c = 4.0f;
+        mcts.gamma = 0.95f;
+        mcts.train(num_roll_outs, num_games);
+        if (argc > 3) mcts.save(argv[3]);
+        else mcts.save();
+        return 0;
+    }
 
     Screen* screen = new Menu_screen(0);
     // init random

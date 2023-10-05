@@ -1,11 +1,11 @@
 #include "game.h"
 
-float MCTS::UCT(int v, int p) {
+float MCTS::UCT(int128 v, int128 p) {
     if (sims.find(v) == sims.end() || sims.find(p) == sims.end() || wins.find(v) == wins.end()) return 0; // idk if this is the correct fix
     return wins[v]/sims[v] + c*sqrt(log(sims[p])/sims[v]);
 }
 
-int MCTS::get_parent(int v) {
+int128 MCTS::get_parent(int128 v) {
     return (v-1)/7;
 }
 
@@ -86,12 +86,12 @@ int MCTS::roll_out(connect_four_board board) {
     }
 
     if (board.win()) {
-        result = board.turn;
+        result = 1;
     }
     return result;
 }
 
-void MCTS::backup(int game_state, int result) {
+void MCTS::backup(int128 game_state, float result) {
     while (game_state != 0) {
         if (sims.find(game_state) == sims.end()) {
             sims[game_state] = 0;
@@ -100,6 +100,7 @@ void MCTS::backup(int game_state, int result) {
         sims[game_state]++;
         wins[game_state] += result;
         game_state = get_parent(game_state);
+        result = -gamma*result; // discount factor and switch result
     }
     if (sims.find(0) == sims.end()) {
         sims[0] = 0;
@@ -132,20 +133,24 @@ void MCTS::play(connect_four_board &board) {
         if (board.selected_row < 0) break;
     }
     if (board.selected_row >= 0) {
+        board.board[board.selected_row][board.selected_col] = board.turn;
         board.turns++;
         board.turn = -board.turn;
         board.selected_row = 5;
-        board.board[board.selected_row][board.selected_col] = board.turn;
     }
 }
 
-void MCTS::save() {
-    std::string filename = "mcts.txt";
+void MCTS::save(std::string filename) {
     std::ofstream out(filename);
-    for (auto [k, v] : sims) out << k << ":" << v << " ";
+    for (auto [k, v] : sims) {
+        out << k << ":" << v << " ";
+    }
     out << "\n";
-    for (auto [k, v] : wins) out << k << ":" << v << " ";
+    for (auto [k, v] : wins) {
+        out << k << ":" << v << " ";
+    }
     out.close();
+    std::cerr << filename<<"\n";
 }
 
 void MCTS::load() {
@@ -156,13 +161,14 @@ void MCTS::load() {
     for (int i = 0; i < 2; i++) {
         std::string line;
         std::getline(in, line);
-        int key = 0;
-        int cur = 0;
+        int128 key = 0;
+        int128 cur = 0;
         int neg = 1;
         for (char c : line) {
             if (c == ' ') {
-                if (i == 0) sims[key] = cur*neg;
-                else wins[key] = cur*neg;
+                cur = cur*neg;
+                if (i == 0) sims[key] = int(cur);
+                else wins[key] = int(cur);
                 cur = 0;
                 neg = 1;
                 continue;
@@ -182,4 +188,29 @@ void MCTS::load() {
         }
     }
     in.close();
+}
+
+void MCTS::train(int num_roll_outs, int num_games) {
+    for (int i = 0; i < num_games; i++) {
+        if (i % 1000 == 0) std::cerr << i << "\n";
+
+        connect_four_board board;
+        // init board
+        for (int i = 0; i < 6; i++) for (int j = 0; j < 7; j++) board.board[i][j] = 0;
+        board.game_state = 0;
+        board.turn = 1;
+        board.turns = 0;
+        board.selected_row = 5;
+
+        while (true) {
+            run(num_roll_outs, board);
+            int col = get_best_move(board);
+            board.selected_col = col;
+            play(board);
+
+            board.turn = -board.turn;
+            if (board.win() || board.turns == 42) break;
+            board.turn = -board.turn;
+        }
+    }
 }

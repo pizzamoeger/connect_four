@@ -74,7 +74,12 @@ void Connect_four_screen::render_board() {
 
 bool connect_four_board::win() {
     // the last tile has beeen placed at board.selected_row, board.selected_col
-    int row = selected_row;
+    int row = 5;
+    while (board[row][selected_col] != 0) {
+        row--;
+        if (row < 0) break;
+    }
+    row++;
     int col = selected_col;
 
     // win horizontally
@@ -167,6 +172,8 @@ bool Connect_four_screen::init() {
     }
 
     mcts.load();
+    mcts.c = 0;
+    mcts.gamma = 0.95f;
 
     return 1;
 }
@@ -343,6 +350,7 @@ void Connect_four_screen::pick_col(int col) {
 
         // also thinking a lot
         //SDL_Delay(rand()%900);
+        SDL_Delay(200);
     }
 }
 

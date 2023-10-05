@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <fstream>
 #include <cassert>
+#include <boost/multiprecision/cpp_int.hpp>
+
+#define int128 boost::multiprecision::int128_t
 
 //Screen dimension constants
 const int TEXT_SIZE = 60;
@@ -39,7 +42,7 @@ struct connect_four_board {
     int selected_col;
     int selected_row;
     int board[6][7];
-    int game_state;
+    int128 game_state;
     SDL_Circle circles[6][7];
     SDL_Rect rect;
 
@@ -47,25 +50,27 @@ struct connect_four_board {
 };
 
 struct MCTS {
-    std::map<int, int> wins;
-    std::map<int, int> sims;
+    std::map<int128, int> wins;
+    std::map<int128, int> sims;
     float c;
+    float gamma;
 
-    float UCT(int v, int p);
-    int get_parent(int v);
+    float UCT(int128 v, int128 p);
+    int128 get_parent(int128 v);
 
     void run(int num_roll_outs, connect_four_board board);
     void select(connect_four_board &board);
     void expand(connect_four_board &board);
     int roll_out(connect_four_board board);
-    void backup(int game_state, int result); // result either 1 (w), 0 (t), or -1 (l) ?
+    void backup(int128 game_state, float result); // result either 1 (w), 0 (t), or -1 (l) ?
 
     int get_best_move(connect_four_board board);
 
     void play(connect_four_board &board);
 
-    void save();
+    void save(std::string filename = "mcts.txt");
     void load();
+    void train(int num_roll_outs, int num_games);
 };
 
 enum {
