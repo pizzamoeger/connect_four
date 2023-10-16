@@ -46,15 +46,10 @@ int main(int argc, char* argv[]) {
 
     if (argc > 1) { // train mcts
         std::cerr << "training mcts\n";
-        int num_roll_outs = atoi(argv[1]);
-        int num_games = atoi(argv[2]);
-        int iterations = atoi(argv[3]);
+        int num_games = atoi(argv[1]);
         MCTS mcts;
-        mcts.c = sqrt(2.0f);
-        mcts.num_roll_outs = num_roll_outs;
-        mcts.iterations = iterations;
         mcts.train(num_games);
-        if (argc > 4) mcts.save(argv[4]);
+        if (argc > 2) mcts.save(argv[2]);
         else mcts.save();
         return 0;
     }

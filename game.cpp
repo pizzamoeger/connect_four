@@ -75,81 +75,27 @@ void Connect_four_screen::render_board() {
 
 bool connect_four_board::win() {
     // place of last tile
-    int row = 5;
-    while (board[row][selected_col] != 0) {
-        row--;
-        if (row < 0) break;
-    }
-    row++;
-    int col = selected_col;
-    int turn = board[row][col];
+    int placed_row = get_row()+1;
+    int placed_col = selected_col;
+    int turn = board[placed_row][placed_col];
 
-    // win horizontally
-    for (int i = std::max(0, row-4); i < std::min(6-4+1, row+4); i++) {
-        bool win = true;
-        for (int j = 0; j < 4; j++) {
-            assert(i+j < 6);
-            assert(i+j >= 0);
-            if (board[i+j][col] != turn) {
-                win = false;
-                break;
-            }
+    // length of continuous pattern of correct tile in dis xstp ystp
+    auto check = [&](int xstp, int ystp) {
+        int col = placed_col, row = placed_row;
+        while (0 <= col && col < 7 && 0 <= row && row < 6 && board[row][col] == turn) {
+            col += xstp;
+            row += ystp;
         }
-        if (win) return true;
-    }
+        return std::max(abs(col - placed_col), abs(row - placed_row)); // length
+    };
 
-    // win vertically
-    for (int i = std::max(0, col-4); i < std::min(7-4+1, col+4); i++) {
-        bool win = true;
-        for (int j = 0; j < 4; j++) {
-            assert(i+j < 7);
-            assert(i+j >= 0);
-            if (board[row][i+j] != turn) {
-                win = false;
-                break;
-            }
+    // look for all possible pattern
+    for (int xstp: {0, 1}) {
+        for (int ystp: {-1, 0, 1}) {
+            if (xstp == 0 && ystp == 0) continue;
+            if (check(xstp, ystp) + check(-xstp, -ystp) >= 5) return true;
         }
-        if (win) return true;
     }
-
-    // win diagonally up left to down right
-    for (int it = -3; it < 4; it++) {
-        bool win = true;
-        if (row + it < 0 || row + it + 3 >= 6 || col + it < 0 || col + it + 3 >= 7) continue;
-        int i = row+it;
-        int j = col+it;
-        for (int k = 0; k < 4; k++) {
-            assert(i+k < 6);
-            assert(i+k >= 0);
-            assert(j+k < 7);
-            assert(j+k >= 0);
-            if (board[i+k][j+k] != turn) {
-                win = false;
-                break;
-            }
-        }
-        if (win) return true;
-    }
-
-    // win diagonally down left to up right
-    for (int it = -3; it < 4; it++) {
-        bool win = true;
-        if (row + it < 0 || row + it + 3 >= 6 || col - it - 3 < 0 || col - it >= 7) continue;
-        int i = row+it;
-        int j = col-it;
-        for (int k = 0; k < 4; k++) {
-            assert(i+k < 6);
-            assert(i+k >= 0);
-            assert(j-k < 7);
-            assert(j-k >= 0);
-            if (board[i+k][j-k] != turn) {
-                win = false;
-                break;
-            }
-        }
-        if (win) return true;
-    }
-
     return false;
 }
 
@@ -175,9 +121,6 @@ bool Connect_four_screen::init() {
 
     // init mcts
     mcts.load();
-    mcts.c = sqrt(2.0f);
-    mcts.num_roll_outs = 100;
-    mcts.iterations = 1000;
 
     return 1;
 }
@@ -253,10 +196,7 @@ int Connect_four_screen::loop() { // 0: TIE, 1: player1, -1: player2, 2: continu
 }
 
 int Connect_four_screen::play() {
-    while (board.board[board.selected_row][board.selected_col] != 0) {
-        board.selected_row--;
-        if (board.selected_row < 0) break;
-    }
+    board.selected_row = board.get_row();
     if (board.selected_row >= 0) {
 
         // animation for falling of tile
@@ -309,7 +249,9 @@ void Connect_four_screen::falling() {
 
     // updates the board
     board.board[board.selected_row][board.selected_col] = board.turn;
-    board.game_state = 7*board.selected_row+board.selected_col+1;
+    //int oldddd = board.game_state;
+    board.game_state = 7*board.game_state+board.selected_col+1;
+    //assert(oldddd < board.game_state);
 }
 
 int Connect_four_screen::DQN() {
@@ -540,4 +482,13 @@ void Menu_screen::render_screen() {
         }
         else display_text(text[i].c_str(), -1, y_pos[i], TEXT_SIZE, 1, x, w, GREEN);
     }
+}
+
+int connect_four_board::get_row() { // return -1 if invalid
+    int row = 5;
+    while (board[row][selected_col] != 0) {
+        row--;
+        if (row < 0) break;
+    }
+    return row;
 }
