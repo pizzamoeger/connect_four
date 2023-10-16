@@ -13,6 +13,8 @@
 #include <cassert>
 #include <boost/multiprecision/cpp_int.hpp>
 
+// TODO: maybe instead of simulating n times, i need to do the entire process n times?
+
 #define int128 boost::multiprecision::int128_t
 
 //Screen dimension constants
@@ -50,15 +52,17 @@ struct connect_four_board {
 };
 
 struct MCTS {
-    std::map<int128, int> wins;
+    std::map<int128, float> wins;
     std::map<int128, int> sims;
     float c;
-    float gamma;
+    int num_roll_outs;
+    int iterations;
+    float discount_factor = 0.995;
 
     float UCT(int128 v, int128 p);
     int128 get_parent(int128 v);
 
-    void run(int num_roll_outs, connect_four_board board);
+    void run(connect_four_board board);
     void select(connect_four_board &board);
     void expand(connect_four_board &board);
     int roll_out(connect_four_board board);
@@ -70,7 +74,7 @@ struct MCTS {
 
     void save(std::string filename = "mcts.txt");
     void load();
-    void train(int num_roll_outs, int num_games);
+    void train(int num_games);
 };
 
 enum {

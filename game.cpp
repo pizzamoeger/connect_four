@@ -82,6 +82,7 @@ bool connect_four_board::win() {
     }
     row++;
     int col = selected_col;
+    int turn = board[row][col];
 
     // win horizontally
     for (int i = std::max(0, row-4); i < std::min(6-4+1, row+4); i++) {
@@ -174,8 +175,9 @@ bool Connect_four_screen::init() {
 
     // init mcts
     mcts.load();
-    mcts.c = 0;
-    mcts.gamma = 0.95f;
+    mcts.c = sqrt(2.0f);
+    mcts.num_roll_outs = 100;
+    mcts.iterations = 1000;
 
     return 1;
 }
@@ -274,7 +276,7 @@ int Connect_four_screen::play() {
                 std::cerr << "\n";
             }
 
-            if (AI_player >= 3) mcts.save();
+            if (AI_player != 0) mcts.save();
             return -board.turn;
         }
 
@@ -322,7 +324,7 @@ int Connect_four_screen::DQN() {
 }
 
 int Connect_four_screen::MCTS_func() {
-    mcts.run(100, board);
+    mcts.run(board);
 
     int col = mcts.get_best_move(board);
     pick_col(col);

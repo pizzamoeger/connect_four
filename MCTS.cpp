@@ -9,15 +9,18 @@ int128 MCTS::get_parent(int128 v) {
     return (v-1)/7;
 }
 
-void MCTS::run(int num_roll_outs, connect_four_board board) {
-    select(board); // select most promising leaf node from this state
-    if (board.win() || board.turns == 42) return; // game ended (no need to expand)
-    expand(board); // unexplored child of leaf node
-    int result = 0;
-    for (int i = 0; i < num_roll_outs; i++) {
-        result += roll_out(board); // simulate
+void MCTS::run(connect_four_board board) {
+    for (int i = 0; i < iterations; i++) {
+        select(board); // select most promising leaf node from this state
+        if (board.win() || board.turns == 42) return; // game ended (no need to expand)
+        expand(board); // unexplored child of leaf node
+        int result = 0;
+        for (int j = 0; j < num_roll_outs; j++) { // simulate
+            if (roll_out(board) == board.turn) result++; // win
+            else if (roll_out(board) == -board.turn) result--; // loss
+        }
+        backup(board.game_state, result);
     }
-    backup(board.game_state, result);
 }
 
 void MCTS::select(connect_four_board &board) {
@@ -70,7 +73,6 @@ void MCTS::expand(connect_four_board &board) {
 }
 
 int MCTS::roll_out(connect_four_board board) {
-    int result = 0;
 
     while (!board.win() && board.turns < 42) { // simulate until game ends by selecting random moves
         std::vector<int> moves (7);
@@ -86,9 +88,9 @@ int MCTS::roll_out(connect_four_board board) {
     }
 
     if (board.win()) {
-        result = 1;
+        return board.turn;
     }
-    return result;
+    return 0;
 }
 
 void MCTS::backup(int128 game_state, float result) {
@@ -100,7 +102,7 @@ void MCTS::backup(int128 game_state, float result) {
         sims[game_state]++;
         wins[game_state] += result;
         game_state = get_parent(game_state);
-        result = -gamma*result; // discount factor and switch result
+        result = -discount_factor*result; // switch result MAYBE ADD DISCOUNT FACTOR?
     }
     if (sims.find(0) == sims.end()) {
         sims[0] = 0;
@@ -111,19 +113,25 @@ void MCTS::backup(int128 game_state, float result) {
 }
 
 int MCTS::get_best_move(connect_four_board board) {
-    int best_col = -1;
-    int best_uct = 0;
+    std::vector<int> best_cols;
+    int best_val = 0;
+
 
     for (int i = 0; i < 7; i++) {
 
-        int uct = UCT(7*board.game_state+i+1, board.game_state); // find best UCT value of children
-        if ((uct > best_uct || best_col == -1) && board.board[0][i] == 0) {
-            best_uct = uct;
-            best_col = i;
+        int val = 0; // find most promising child
+        if (sims.find(7*board.game_state+i+1) != sims.end()) val = wins[7*board.game_state+i+1]/sims[7*board.game_state+i+1];
+        if ((val > best_val || best_cols.empty()) && board.board[0][i] == 0) {
+            best_val = val;
+            best_cols.clear();
+            best_cols.push_back(i);
+        } else if (val == best_val && board.board[0][i] == 0) {
+            best_cols.push_back(i);
         }
 
     }
 
+    int best_col = best_cols[rand()%best_cols.size()]; // select one at random
     return best_col;
 }
 
@@ -149,7 +157,7 @@ void MCTS::save(std::string filename) {
     }
     out << "\n";
     for (auto [k, v] : wins) {
-        out << k << ":" << v << " ";
+        out << k << ":" << int(v) << " ";
     }
     out.close();
     std::cerr << filename<<"\n";
@@ -191,7 +199,7 @@ void MCTS::load() {
     in.close();
 }
 
-void MCTS::train(int num_roll_outs, int num_games) {
+void MCTS::train(int num_games) {
     for (int i = 0; i < num_games; i++) {
         if (i % 1000 == 0) std::cerr << i << "\n";
 
@@ -205,14 +213,12 @@ void MCTS::train(int num_roll_outs, int num_games) {
 
         // play game
         while (true) {
-            run(num_roll_outs, board);
+            run(board);
             int col = get_best_move(board);
             board.selected_col = col;
             play(board);
 
-            board.turn = -board.turn;
             if (board.win() || board.turns == 42) break;
-            board.turn = -board.turn;
         }
     }
 }
