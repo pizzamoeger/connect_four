@@ -89,7 +89,7 @@ bool connect_four_board::win() {
         return std::max(abs(col - placed_col), abs(row - placed_row)); // length
     };
 
-    // look for all possible pattern
+    // look for all possible patterns
     for (int xstp: {0, 1}) {
         for (int ystp: {-1, 0, 1}) {
             if (xstp == 0 && ystp == 0) continue;

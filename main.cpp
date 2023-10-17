@@ -24,6 +24,7 @@ Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
             y = (SCREEN_HEIGHT - (700-150+TEXT_SIZE+TEXT_DIST)) / 2 + 700 + 70;
 
             delete screen;
+            if (status == 2) status = -1;
             screen = new End_screen(status, x, y);
             break;
 

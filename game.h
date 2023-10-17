@@ -56,7 +56,7 @@ struct MCTS {
     std::map<int128, int> sims;
     float c = sqrt(2.0f);
     int num_roll_outs = 100;
-    int iterations = 1000;
+    int iterations = 10000;
     float discount_factor = 1;
 
     float UCT(int128 v, int128 p);
