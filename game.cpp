@@ -120,7 +120,9 @@ bool Connect_four_screen::init() {
     }
 
     // init mcts
-    mcts.load();
+    // TODO: this assumes only mcts
+    mcts_1.load(player_1);
+    mcts_2.load(player_2);
 
     return 1;
 }
@@ -210,7 +212,10 @@ int Connect_four_screen::play() {
                 std::cerr << "\n";
             }
 
-            if (game_type/3 == MCTS_N || game_type/3 == MCTS_N) mcts.save();
+            if (game_type/3 == MCTS_N || game_type/3 == MCTS_N) {
+                mcts_1.save(player_1);
+                mcts_2.save(player_2);
+            }
             if (board.turn == 1) return 2; // second player has won
             return 1; // first player has won
         }
@@ -218,6 +223,10 @@ int Connect_four_screen::play() {
         board.turns++;
         board.turn = -board.turn;
         board.selected_row = 5;
+        // swap mcts
+        MCTS tmp = mcts_1;
+        mcts_1 = mcts_2;
+        mcts_2 = tmp;
     }
 
     return CONTINUE;
@@ -261,9 +270,9 @@ int Connect_four_screen::DQN() {
 }
 
 int Connect_four_screen::MCTS_func() {
-    mcts.run(board);
+    mcts_1.run(board);
 
-    int col = mcts.get_best_move(board);
+    int col = mcts_1.get_best_move(board);
     pick_col(col);
 
     return play();
@@ -441,6 +450,16 @@ int Menu_screen::loop() {
                         break;
 
                     case SDL_SCANCODE_RETURN:
+                        // get the filename where the network is stored
+                        std::cerr << "selected: " << selected[cur_col] << "\n";
+                        //if (selected[cur_col] == DQN_N)
+                        if (selected[cur_col] == MCTS_N) {
+                            player_1 = get_text();
+
+                            if (player_1 == "EXIT") return EXIT;
+
+                            swap(player_1, player_2);
+                        }
                         if (cur_col) {
                             return mode();
                         }
@@ -462,6 +481,65 @@ int Menu_screen::loop() {
     SDL_RenderPresent(renderer);
 
     return CONTINUE;
+}
+
+std::string Menu_screen::get_text() {
+    SDL_Event event;
+    std::string text = "";
+    bool quit = false;
+    std::cerr << "get text\n";
+
+    // handles events
+    while (!quit) {
+        //std::cout << text << "\n";
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+
+                case SDL_QUIT:
+                    return "EXIT";
+
+                case SDL_KEYDOWN: {
+                    switch (event.key.keysym.scancode) {
+
+                        case SDL_SCANCODE_RETURN:
+                            quit = true;
+                            break;
+
+                        case SDL_SCANCODE_BACKSPACE:
+                            if (text.size() > 0) text.pop_back();
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
+                case SDL_TEXTINPUT:
+                    // the only characters allowed are letters and numbers . and _
+                    if (event.text.text[0] >= 'a' && event.text.text[0] <= 'z') text += event.text.text;
+                    if (event.text.text[0] >= 'A' && event.text.text[0] <= 'Z') text += event.text.text;
+                    if (event.text.text[0] >= '0' && event.text.text[0] <= '9') text += event.text.text;
+                    if (event.text.text[0] == '.') text += event.text.text;
+                    if (event.text.text[0] == '_') text += event.text.text;
+                    std::cerr << text << "\n";
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // updates screen
+        SDL_RenderClear(renderer);
+        if (text.size() != 0) display_text(text.c_str(), -1, -1, TEXT_SIZE, 0, 0, SCREEN_WIDTH, DARK_GREEN);
+        set_col(renderer, WHITE);
+        SDL_RenderPresent(renderer);
+
+        // calculates to 60 fps
+        SDL_Delay(1000 / 60);
+    }
+
+    return text;
 }
 
 void Menu_screen::render_screen() {

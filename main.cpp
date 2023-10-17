@@ -1,7 +1,24 @@
 #include "game.h"
 
-// TODO : i want to die. i9dk wo zum fick memleak bruh
 // run this:  valgrind --leak-check=full cmake-build-debug/connect_four  to die faster :D
+/*
+ * SOME DOCUMENTATION:
+ * you can select what plays against what on the menu screen.
+ * man is manual, meaning user input
+ * dqn is a neural network trained with deep q learning
+ * mcts is a monte carlo tree search
+ *
+ * first you select how the first player will play, then you press enter.
+ * now you need to enter from which file you want to load the model.
+ * the only characters allowed for the filename are letters and numbers . and _
+ *
+ * FOR MCTS: THE FILE NEEDS TO BE OF FORMAT:
+ * sims (EMPTY IF YOU WANT TO START WITH A NEW MODEL)
+ * wins (EMPTY IF YOU WANT TO START WITH A NEW MODEL)
+ * random_roll_out num_roll_outs iterations c discount_factor
+ *
+ * DQN IS NOT FUNCTIONAL YET
+ * */
 
 Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
     screen->close();
@@ -12,6 +29,8 @@ Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
     //SDL_Window* tmp_window = screen->window;
     SDL_Renderer* tmp_renderer = screen->renderer;
     connect_four_board tmp_board = screen->board;
+    std::string tmp_player_1 = screen->player_1;
+    std::string tmp_player_2 = screen->player_2;
 
     switch (new_screen) {
         case SCREEN_CONNECT_FOUR:
@@ -35,6 +54,8 @@ Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
     //std::swap(screen->window, tmp_window);
     std::swap(screen->renderer, tmp_renderer);
     std::swap(screen->board, tmp_board);
+    std::swap(screen->player_1, tmp_player_1);
+    std::swap(screen->player_2, tmp_player_2);
 
     screen->init();
     return screen;

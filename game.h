@@ -54,10 +54,14 @@ struct connect_four_board {
 struct MCTS {
     std::map<int128, float> wins;
     std::map<int128, int> sims;
-    float c = sqrt(2.0f);
+
+    bool random_roll_out = false;
     int num_roll_outs = 100;
     int iterations = 10000;
-    float discount_factor = 1;
+
+    float c = sqrt(2.0f);
+    float discount_factor = 1; // TODO: this is not functional yet
+
 
     float UCT(int128 v, int128 p);
     int128 get_parent(int128 v);
@@ -66,14 +70,15 @@ struct MCTS {
     void select(connect_four_board &board);
     void expand(connect_four_board &board);
     int roll_out(connect_four_board board);
-    void backup(int128 game_state, float result); // result either 1 (w), 0 (t), or -1 (l) ?
+    int roll_out_rand(connect_four_board board);
+    void backup(int128 game_state, float result);
 
     int get_best_move(connect_four_board board);
 
     void play(connect_four_board &board);
 
     void save(std::string filename = "mcts.txt");
-    void load();
+    void load(std::string filename = "mcts.txt");
     void train(int num_games);
     std::vector<int> can_win(int player, connect_four_board board);
 };
@@ -82,6 +87,12 @@ enum {
     SCREEN_CONNECT_FOUR,
     SCREEN_END,
     SCREEN_MENU
+};
+
+enum {
+    MAN_N = 0,
+    DQN_N = 1,
+    MCTS_N = 2
 };
 
 void SDL_RenderFillCircle(SDL_Renderer* renderer, SDL_Circle* circle);
@@ -94,6 +105,9 @@ struct Screen {
     SDL_Texture* texture;
 
     connect_four_board board;
+
+    std::string player_1 = "MAN";
+    std::string player_2 = "MAN";
 
     enum {
         CONTINUE = -1,
@@ -112,12 +126,8 @@ struct Screen {
 struct Connect_four_screen : public Screen {
     int game_type;
     int cur;
-    MCTS mcts;
-    enum {
-        MAN_N,
-        DQN_N,
-        MCTS_N
-    };
+    MCTS mcts_1;
+    MCTS mcts_2;
 
     Connect_four_screen(int status) : game_type(status) {};
 
@@ -147,7 +157,9 @@ struct End_screen : public Screen {
 struct Menu_screen : public Screen {
     std::vector<int> selected;
     bool cur_col = false;
+
     std::vector<std::string> text = {"MAN", "DQN", "MCTS"};
+
     Menu_screen(std::vector<int> selected) : selected(selected) {};
 
     bool init();
@@ -155,6 +167,7 @@ struct Menu_screen : public Screen {
     void close();
 
     void render_screen();
+    std::string get_text();
     int mode();
 };
 

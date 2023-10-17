@@ -23,7 +23,11 @@ void MCTS::run(connect_four_board board) {
         expand(board); // unexplored child of leaf node
         int result = 0;
         for (int j = 0; j < num_roll_outs; j++) { // simulate
-            int r_out = roll_out(board);
+            int r_out;
+
+            if (random_roll_out) r_out = roll_out_rand(board); // random rollout
+            else r_out = roll_out(board); // random rollout with some logic
+
             if (r_out == board.turn) result--; // loss
             else if (r_out == -board.turn) result++; // win
         }
@@ -123,6 +127,29 @@ int MCTS::roll_out(connect_four_board board) {
     return 0;
 }
 
+int MCTS::roll_out_rand(connect_four_board board) {
+
+    while (!board.win() && board.turns < 42) { // simulate random until game ends
+
+        std::vector<int> moves (7);
+        std::iota(moves.begin(), moves.end(), 0);
+        std::random_shuffle(moves.begin(), moves.end());
+        int ind = 0;
+        board.selected_col = moves[ind];
+        while (ind < 7 && board.board[0][board.selected_col] != 0) {
+            board.selected_col = moves[ind++];
+        }
+        if (ind >= 7) break;
+
+        play(board);
+    }
+
+    if (board.win()) {
+        return -board.turn;
+    }
+    return 0;
+}
+
 void MCTS::backup(int128 game_state, float result) {
     while (game_state != 0) {
         if (sims.find(game_state) == sims.end()) {
@@ -186,12 +213,14 @@ void MCTS::save(std::string filename) {
     for (auto [k, v] : wins) {
         out << k << ":" << int(v) << " ";
     }
+    out << "\n";
+
+    out << random_roll_out << " " << num_roll_outs << " " << iterations << " " << c << " " << discount_factor << "\n";
     out.close();
     std::cerr << filename <<"\n";
 }
 
-void MCTS::load() {
-    std::string filename = "mcts.txt";
+void MCTS::load(std::string filename) {
     std::ifstream in(filename);
 
     for (int i = 0; i < 2; i++) {
@@ -223,6 +252,7 @@ void MCTS::load() {
             cur += c-'0';
         }
     }
+    in >> random_roll_out >> num_roll_outs >> iterations >> c >> discount_factor;
     in.close();
 }
 
