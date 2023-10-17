@@ -8,7 +8,6 @@ Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
 
     int x = 0;
     int y = 0;
-    int AI_player = status;
 
     //SDL_Window* tmp_window = screen->window;
     SDL_Renderer* tmp_renderer = screen->renderer;
@@ -17,7 +16,7 @@ Screen* switch_screen(Screen* screen, int new_screen, int status = 0) {
     switch (new_screen) {
         case SCREEN_CONNECT_FOUR:
             delete screen;
-            screen = new Connect_four_screen(AI_player);
+            screen = new Connect_four_screen(status);
             break;
 
         case SCREEN_END:
@@ -54,7 +53,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    Screen* screen = new Menu_screen(0);
+    Screen* screen = new Menu_screen({0, 0});
     // init random
     srand(time(NULL));
 
@@ -63,12 +62,12 @@ int main(int argc, char* argv[]) {
     }
 
     // wait for user to select what mode
-    int status = 2;
-    while(status == 2) {
+    int status = screen->CONTINUE;
+    while(status == screen->CONTINUE) {
         status = screen->loop();
     }
 
-    if (status == -2) {
+    if (status == screen->EXIT) {
         screen->close_all();
         return 0;
     }
@@ -82,17 +81,17 @@ int main(int argc, char* argv[]) {
     screen = switch_screen(screen, SCREEN_CONNECT_FOUR, status);
 
     // game loop
-    status = 2;
-    while(status == 2) status = screen->loop();
+    status = screen->CONTINUE;
+    while(status == screen->CONTINUE) status = screen->loop();
 
-    if (status == -2) {
+    if (status == screen->EXIT) {
         screen->close_all();
         return 0;
     }
 
     screen = switch_screen(screen, SCREEN_END, status);
 
-    while (screen->loop());
+    while (screen->loop() == screen->CONTINUE);
 
     screen->close_all();
     delete screen;

@@ -125,9 +125,11 @@ bool Connect_four_screen::init() {
     return 1;
 }
 
-int Connect_four_screen::loop() { // 0: TIE, 1: player1, -1: player2, 2: continue, -2: quit
+int Connect_four_screen::loop() {
     SDL_Event event;
     int ret;
+    if (board.turn == 1) cur = game_type/3;
+    else cur = game_type%3;
 
     // Events management
     while (SDL_PollEvent(&event)) {
@@ -135,10 +137,10 @@ int Connect_four_screen::loop() { // 0: TIE, 1: player1, -1: player2, 2: continu
 
             case SDL_QUIT:
                 // handling of close button
-                return -2;
+                return EXIT;
 
             case SDL_KEYDOWN: {
-                if (AI_player > 1) break;
+                if (cur != MAN_N) break;
                 // keyboard API for key pressed
                 switch (event.key.keysym.scancode) {
 
@@ -152,7 +154,7 @@ int Connect_four_screen::loop() { // 0: TIE, 1: player1, -1: player2, 2: continu
 
                     case SDL_SCANCODE_RETURN:
                         ret = play();
-                        if (ret != 2) {
+                        if (ret != CONTINUE) {
                             return ret;
                         }
                         break;
@@ -176,21 +178,13 @@ int Connect_four_screen::loop() { // 0: TIE, 1: player1, -1: player2, 2: continu
     // calculates to 60 fps
     SDL_Delay(1000 / 60);
 
-    // tie
-    if (board.turns == 42) return 0;
+    if (board.turns == 42) return 0; // tie
 
-    ret = 2;
+    ret = CONTINUE;
 
     // handle single player
-    if (AI_player == board.turn) ret = DQN();
-    if (AI_player == 3) {
-        if (board.turn == 1) ret = DQN();
-        else ret = MCTS_func();
-    }
-    if (AI_player == 4) {
-        if (board.turn == 1) ret = MCTS_func();
-        else ret = DQN();
-    }
+    if (cur == DQN_N) ret = DQN();
+    else if (cur == MCTS_N) ret = MCTS_func();
 
     return ret;
 }
@@ -216,8 +210,9 @@ int Connect_four_screen::play() {
                 std::cerr << "\n";
             }
 
-            if (AI_player != 0) mcts.save();
-            return -board.turn;
+            if (game_type/3 == MCTS_N || game_type/3 == MCTS_N) mcts.save();
+            if (board.turn == 1) return 2; // second player has won
+            return 1; // first player has won
         }
 
         board.turns++;
@@ -225,7 +220,7 @@ int Connect_four_screen::play() {
         board.selected_row = 5;
     }
 
-    return 2;
+    return CONTINUE;
 }
 
 void Connect_four_screen::falling() {
@@ -402,14 +397,14 @@ int End_screen::loop() {
         switch (event.type) {
 
             case SDL_QUIT:
-                return 0;
+                return EXIT;
 
             default:
                 break;
         }
     }
 
-    return 1;
+    return CONTINUE;
 }
 
 void End_screen::close() {
@@ -432,22 +427,24 @@ int Menu_screen::loop() {
         switch (event.type) {
 
             case SDL_QUIT:
-                return -2;
+                return EXIT;
 
             case SDL_KEYDOWN: {
                 switch (event.key.keysym.scancode) {
 
                     case SDL_SCANCODE_UP:
-                        selected = std::max(0, selected - 1);
+                        selected[cur_col] = std::max(0, selected[cur_col] - 1);
                         break;
 
                     case SDL_SCANCODE_DOWN:
-                        selected = std::min(4, selected + 1);
+                        selected[cur_col] = std::min(2, selected[cur_col] + 1);
                         break;
 
                     case SDL_SCANCODE_RETURN:
-                        if (selected > 2) return selected;
-                        return selected - 1;
+                        if (cur_col) {
+                            return mode();
+                        }
+                        cur_col = 1;
 
                     default:
                         break;
@@ -464,24 +461,31 @@ int Menu_screen::loop() {
     set_col(renderer, WHITE);
     SDL_RenderPresent(renderer);
 
-    return 2;
+    return CONTINUE;
 }
 
 void Menu_screen::render_screen() {
-    int x = 275;
-    int w = 450;
+    int w = 250;
 
-    std::vector<std::string> text = {"YOU START", "2 PLAYER", "AI STARTS", "DQN VS MCTS", "MCTS VS DQN"};
-    std::vector<int> y_pos = {SCREEN_HEIGHT/6, 2*SCREEN_HEIGHT/6, 3*SCREEN_HEIGHT/6, 4*SCREEN_HEIGHT/6, 5*SCREEN_HEIGHT/6};
+    //std::vector<int> y_pos = {SCREEN_HEIGHT/4, 2*SCREEN_HEIGHT/4, 3*SCREEN_HEIGHT/4};
 
     // display buttons
-    for (int i = 0; i < 5; i++) {
-        if (i == selected) {
-            display_text(text[i].c_str(), -1, y_pos[i], TEXT_SIZE, 1, x, w, DARK_GREEN);
-            continue;
+    for (int col = 0; col < 2; col++) {
+        int x = (col+1)*2*SCREEN_WIDTH/6 - 125;
+        for (int button = 0; button < text.size(); button++) {
+            int y_pos = (button+1)*SCREEN_HEIGHT/(text.size()+1);
+            if (button == selected[col]) {
+                display_text(text[button].c_str(), (col+1)*2*SCREEN_WIDTH/6, y_pos, TEXT_SIZE, 1, x, w, DARK_GREEN);
+                continue;
+            }
+            else display_text(text[button].c_str(), (col+1)*2*SCREEN_WIDTH/6, y_pos, TEXT_SIZE, 1, x, w, GREEN);
         }
-        else display_text(text[i].c_str(), -1, y_pos[i], TEXT_SIZE, 1, x, w, GREEN);
     }
+    // TODO: maybe vs in middle
+}
+
+int Menu_screen::mode() {
+    return selected[0]*3+selected[1];
 }
 
 int connect_four_board::get_row() { // return -1 if invalid

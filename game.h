@@ -56,7 +56,7 @@ struct MCTS {
     std::map<int128, int> sims;
     float c = sqrt(2.0f);
     int num_roll_outs = 100;
-    int iterations = 100;
+    int iterations = 1000;
     float discount_factor = 1;
 
     float UCT(int128 v, int128 p);
@@ -95,6 +95,11 @@ struct Screen {
 
     connect_four_board board;
 
+    enum {
+        CONTINUE = -1,
+        EXIT = -2
+    };
+
     virtual bool init() = 0;
     virtual int loop() = 0;
     virtual void close() = 0;
@@ -105,11 +110,16 @@ struct Screen {
 };
 
 struct Connect_four_screen : public Screen {
-    int AI_player;
+    int game_type;
+    int cur;
     MCTS mcts;
-    Connect_four_screen(int AI_player) : AI_player(AI_player) {
-        mcts.c = 1.0f / sqrt(2.0f); // TODO: this is just something github copilot suggested
+    enum {
+        MAN_N,
+        DQN_N,
+        MCTS_N
     };
+
+    Connect_four_screen(int status) : game_type(status) {};
 
     bool init();
     int loop();
@@ -135,14 +145,17 @@ struct End_screen : public Screen {
 };
 
 struct Menu_screen : public Screen {
-    int selected;
-    Menu_screen(int selected) : selected(selected) {};
+    std::vector<int> selected;
+    bool cur_col = false;
+    std::vector<std::string> text = {"MAN", "DQN", "MCTS"};
+    Menu_screen(std::vector<int> selected) : selected(selected) {};
 
     bool init();
     int loop();
     void close();
 
     void render_screen();
+    int mode();
 };
 
 #endif //CONNECT_FOUR_GAME_H
