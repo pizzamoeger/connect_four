@@ -119,10 +119,41 @@ bool Connect_four_screen::init() {
         }
     }
 
-    // init mcts
-    // TODO: this assumes only mcts
-    mcts_1.load(player_1);
-    mcts_2.load(player_2);
+    // init player
+    auto init_player = [&] (std::string playerfile, Player* player) {
+        std::cerr << "loading " << playerfile << "\n";
+        assert(playerfile.size() > 0);
+
+        if (playerfile[0] == 'R') {
+            player = new Random();
+            return player;
+        }
+        if (playerfile[0] == 'M') {
+            player = new MCTS();
+            return player;
+        }
+        if (playerfile[0] == 'D') {
+            player = new DQN();
+            return player;
+        }
+        if (playerfile[0] == 'A') {
+            player = new Almost_random();
+            return player;
+        }
+        if (playerfile[0] == 'H') {
+            player = new Human();
+            return player;
+        }
+        std::cerr << "error: invalid playerfile, loaded random bot\n";
+        player = new Random();
+        return player;
+    };
+
+    player_1 = init_player(playerfile_1, player_1);
+    player_2 = init_player(playerfile_2, player_2);
+
+    player_1->load(playerfile_1);
+    player_2->load(playerfile_2);
 
     return 1;
 }
@@ -130,8 +161,8 @@ bool Connect_four_screen::init() {
 int Connect_four_screen::loop() {
     SDL_Event event;
     int ret;
-    if (board.turn == 1) cur = game_type/3;
-    else cur = game_type%3;
+    if (board.turn == 1) cur = game_type / SELECTIONS;
+    else cur = game_type%SELECTIONS;
 
     // Events management
     while (SDL_PollEvent(&event)) {
@@ -142,7 +173,7 @@ int Connect_four_screen::loop() {
                 return EXIT;
 
             case SDL_KEYDOWN: {
-                if (cur != MAN_N) break;
+                if (cur == AI) break;
                 // keyboard API for key pressed
                 switch (event.key.keysym.scancode) {
 
@@ -180,13 +211,29 @@ int Connect_four_screen::loop() {
     // calculates to 60 fps
     SDL_Delay(1000 / 60);
 
-    if (board.turns == 42) return 0; // tie
+    if (board.turns == 42) { // tie
+        // calculate new elo
+        std::pair<int,int> new_elos = update_elo(player_1->elo, player_2->elo, 0);
+        player_1->elo = new_elos.first;
+        player_2->elo = new_elos.second;
+
+        // save
+        player_1->save(playerfile_1);
+        player_2->save(playerfile_2);
+
+        return 0;
+    }
 
     ret = CONTINUE;
 
-    // handle single player
-    if (cur == DQN_N) ret = DQN();
-    else if (cur == MCTS_N) ret = MCTS_func();
+    if (cur == MAN) return ret;
+
+    // current player is AI
+    int col;
+    if (board.turn == 1) col = player_1->get_col(board);
+    else col = player_2->get_col(board);
+    pick_col(col);
+    ret = play();
 
     return ret;
 }
@@ -199,16 +246,21 @@ int Connect_four_screen::play() {
         falling();
 
         // checks game is over
-        if (board.win()) {
+        if (board.win()) { // TODO here elo
             board.turn = -board.turn;
             SDL_RenderClear(renderer);
             render_board();
             SDL_RenderPresent(renderer);
 
-            if (game_type/3 == MCTS_N || game_type/3 == MCTS_N) {
-                mcts_1.save(player_1);
-                mcts_2.save(player_2);
-            }
+            // calculate new elo
+            std::pair<int,int> new_elos = update_elo(player_1->elo, player_2->elo, board.turn);
+            player_1->elo = new_elos.first;
+            player_2->elo = new_elos.second;
+
+            // TODO: only save when prompted
+            player_1->save(playerfile_1);
+            player_2->save(playerfile_2);
+
             if (board.turn == 1) return 2; // second player has won
             return 1; // first player has won
         }
@@ -216,10 +268,6 @@ int Connect_four_screen::play() {
         board.turns++;
         board.turn = -board.turn;
         board.selected_row = 5;
-        // swap mcts
-        MCTS tmp = mcts_1;
-        mcts_1 = mcts_2;
-        mcts_2 = tmp;
     }
 
     return CONTINUE;
@@ -246,32 +294,14 @@ void Connect_four_screen::falling() {
 
     // updates the board
     board.board[board.selected_row][board.selected_col] = board.turn;
-    //int oldddd = board.game_state;
     board.game_state = 7*board.game_state+board.selected_col+1;
-    //assert(oldddd < board.game_state);
 }
 
-int Connect_four_screen::DQN() {
-    return MCTS_func();
-    // THIS IS CURRENTLY STUPID AI
-    int col = rand() % 7;
-    while (board.board[0][col] != 0) col = rand() % 7;
-
-    pick_col(col);
-
-    return play();
+void Connect_four_screen::close() {
+    // delete players
+    delete player_1;
+    delete player_2;
 }
-
-int Connect_four_screen::MCTS_func() {
-    mcts_1.run(board);
-
-    int col = mcts_1.get_best_move(board);
-    pick_col(col);
-
-    return play();
-}
-
-void Connect_four_screen::close() {}
 
 void Connect_four_screen::pick_col(int col) {
     // animation for selecting column
@@ -442,18 +472,20 @@ int Menu_screen::loop() {
                         break;
 
                     case SDL_SCANCODE_DOWN:
-                        selected[cur_col] = std::min(2, selected[cur_col] + 1);
+                        selected[cur_col] = std::min(SELECTIONS - 1, selected[cur_col] + 1);
                         break;
 
                     case SDL_SCANCODE_RETURN:
-                        // get the filename where the network is stored
-                        //if (selected[cur_col] == DQN_N)
-                        if (selected[cur_col] == MCTS_N) {
-                            player_1 = get_text();
+                        if (selected[cur_col] == AI) {
+                            if (cur_col == 0) playerfile_1 = get_text();
+                            else playerfile_2 = get_text();
 
-                            if (player_1 == "EXIT") return EXIT;
+                            if (playerfile_1 == EXIT_STR || playerfile_2 == EXIT_STR) return EXIT;
+                        } else {
+                            if (cur_col == 0) playerfile_1 = get_text("ENTER NAME");
+                            else playerfile_2 = get_text("ENTER NAME");
 
-                            swap(player_1, player_2);
+                            if (playerfile_1 == EXIT_STR || playerfile_2 == EXIT_STR) return EXIT;
                         }
                         if (cur_col) {
                             return mode();
@@ -478,7 +510,7 @@ int Menu_screen::loop() {
     return CONTINUE;
 }
 
-std::string Menu_screen::get_text() {
+std::string Menu_screen::get_text(std::string what) {
     SDL_Event event;
     std::string text = "";
     bool quit = false;
@@ -490,7 +522,7 @@ std::string Menu_screen::get_text() {
             switch (event.type) {
 
                 case SDL_QUIT:
-                    return "EXIT";
+                    return EXIT_STR;
 
                 case SDL_KEYDOWN: {
                     switch (event.key.keysym.scancode) {
@@ -509,12 +541,13 @@ std::string Menu_screen::get_text() {
                 }
 
                 case SDL_TEXTINPUT:
-                    // the only characters allowed are letters and numbers . and _
+                    // the only characters allowed are letters and numbers . / and _
                     if (event.text.text[0] >= 'a' && event.text.text[0] <= 'z') text += event.text.text;
                     if (event.text.text[0] >= 'A' && event.text.text[0] <= 'Z') text += event.text.text;
                     if (event.text.text[0] >= '0' && event.text.text[0] <= '9') text += event.text.text;
                     if (event.text.text[0] == '.') text += event.text.text;
                     if (event.text.text[0] == '_') text += event.text.text;
+                    if (event.text.text[0] == '/') text += event.text.text;
 
                     break;
 
@@ -525,7 +558,7 @@ std::string Menu_screen::get_text() {
 
         // updates screen
         SDL_RenderClear(renderer);
-        display_text("ENTER FILENAME", -1, SCREEN_HEIGHT/4, TEXT_SIZE, 0, 0, SCREEN_WIDTH, DARK_GREEN);
+        display_text(what.c_str(), -1, SCREEN_HEIGHT/4, TEXT_SIZE, 0, 0, SCREEN_WIDTH, DARK_GREEN);
         if (text.size() != 0) display_text(text.c_str(), -1, -1, TEXT_SIZE, 0, 0, SCREEN_WIDTH, DARK_GREEN);
         set_col(renderer, WHITE);
         SDL_RenderPresent(renderer);
@@ -533,6 +566,9 @@ std::string Menu_screen::get_text() {
         // calculates to 60 fps
         SDL_Delay(1000 / 60);
     }
+
+    std::cerr << text << "\n";
+    if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
 
     return text;
 }
@@ -558,7 +594,7 @@ void Menu_screen::render_screen() {
 }
 
 int Menu_screen::mode() {
-    return selected[0]*3+selected[1];
+    return selected[0] * SELECTIONS + selected[1];
 }
 
 int connect_four_board::get_row() { // return -1 if invalid

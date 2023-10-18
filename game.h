@@ -14,6 +14,7 @@
 #include <boost/multiprecision/cpp_int.hpp>
 
 #define int128 boost::multiprecision::int128_t
+#define EXIT_STR "EXIT!" // ! cannot be given as input
 //#define int128 int
 
 //Screen dimension constants
@@ -32,7 +33,7 @@ const SDL_Color GREEN = {152,251,152, 255};
 const SDL_Color DARK_GREEN = {15,90,50, 255};
 
 void set_col(SDL_Renderer* renderer, SDL_Color color);
-int update_elo(int elo_1, int elo_2, int winner);
+std::pair<int,int> update_elo(int elo_1, int elo_2, int result);
 
 typedef struct SDL_Circle {
     int x, y, r;
@@ -54,7 +55,17 @@ struct connect_four_board {
 
 struct Player {
     int elo = 1000;
-    virtual int get_col(bool train) = 0;
+    virtual int get_col(connect_four_board board) = 0;
+    virtual void load(std::string filename = "RANDOM/bot.txt") {
+        std::ifstream in(filename);
+        in >> elo;
+        in.close();
+    };
+    virtual void save(std::string filename = "RANDOM/bot.txt") {
+        std::ofstream out(filename);
+        out << elo << "\n";
+        out.close();
+    };
 };
 
 struct MCTS : public Player {
@@ -68,7 +79,7 @@ struct MCTS : public Player {
     float c = sqrt(2.0f);
     float discount_factor = 1; // TODO: this is not functional yet
 
-    int get_col(bool train);
+    int get_col(connect_four_board board);
 
     float UCT(int128 v, int128 p);
     int128 get_parent(int128 v);
@@ -84,10 +95,33 @@ struct MCTS : public Player {
 
     void play(connect_four_board &board);
 
-    void save(std::string filename = "mcts.txt");
-    void load(std::string filename = "mcts.txt");
+    void save(std::string filename = "MCTS/bot.txt");
+    void load(std::string filename = "MCTS/bot.txt");
     void train(int num_games);
     std::vector<int> can_win(int player, connect_four_board board);
+};
+
+struct DQN : public Player {
+    int get_col(connect_four_board board);
+    void load(std::string filename = "DQN/bot.txt");
+    void save(std::string filename = "DQN/bot.txt");
+};
+
+struct Random : public Player {
+    int get_col(connect_four_board board);
+};
+
+struct Almost_random : public Player {
+    int get_col(connect_four_board board);
+
+    std::vector<int> can_win(int player, connect_four_board board);
+    void play(connect_four_board &board);
+};
+
+struct Human : public Player {
+    int get_col(connect_four_board board) {
+        return 0;
+    };
 };
 
 enum {
@@ -97,9 +131,8 @@ enum {
 };
 
 enum {
-    MAN_N = 0,
-    DQN_N = 1,
-    MCTS_N = 2
+    MAN = 0,
+    AI = 1
 };
 
 void SDL_RenderFillCircle(SDL_Renderer* renderer, SDL_Circle* circle);
@@ -113,8 +146,8 @@ struct Screen {
 
     connect_four_board board;
 
-    std::string player_1 = "MAN";
-    std::string player_2 = "MAN";
+    std::string playerfile_1 = "HUMAN/test.txt";
+    std::string playerfile_2 = "HUMAN/test.txt";
 
     enum {
         CONTINUE = -1,
@@ -133,8 +166,8 @@ struct Screen {
 struct Connect_four_screen : public Screen {
     int game_type;
     int cur;
-    MCTS mcts_1;
-    MCTS mcts_2;
+    Player* player_1;
+    Player* player_2;
 
     Connect_four_screen(int status) : game_type(status) {};
 
@@ -146,8 +179,6 @@ struct Connect_four_screen : public Screen {
     void falling();
     void pick_col(int col);
     int play();
-    int DQN();
-    int MCTS_func();
 };
 
 struct End_screen : public Screen {
@@ -161,11 +192,13 @@ struct End_screen : public Screen {
     void close();
 };
 
+const int SELECTIONS = 2;
+
 struct Menu_screen : public Screen {
     std::vector<int> selected;
     bool cur_col = false;
 
-    std::vector<std::string> text = {"MAN", "DQN", "MCTS"};
+    std::vector<std::string> text = {"MAN", "AI"};
 
     Menu_screen(std::vector<int> selected) : selected(selected) {};
 
@@ -174,7 +207,7 @@ struct Menu_screen : public Screen {
     void close();
 
     void render_screen();
-    std::string get_text();
+    std::string get_text(std::string what = "ENTER FILENAME");
     int mode();
 };
 

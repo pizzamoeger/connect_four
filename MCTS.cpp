@@ -109,15 +109,6 @@ int MCTS::roll_out(connect_four_board board) {
             if (no_loss_moves.empty()) board.selected_col = valid_moves[rand() % valid_moves.size()]; // will lose no matter what
             else board.selected_col = no_loss_moves[rand() % no_loss_moves.size()];
         }
-        /*std::vector<int> moves (7);
-        std::iota(moves.begin(), moves.end(), 0);
-        std::random_shuffle(moves.begin(), moves.end());
-        int ind = 0;
-        board.selected_col = moves[ind];
-        while (ind < 7 && board.board[0][board.selected_col] != 0) {
-            board.selected_col = moves[ind++];
-        }
-        if (ind >= 7) break;*/
         play(board);
     }
 
@@ -216,8 +207,8 @@ void MCTS::save(std::string filename) {
     out << "\n";
 
     out << random_roll_out << " " << num_roll_outs << " " << iterations << " " << c << " " << discount_factor << "\n";
+    out << elo << "\n";
     out.close();
-    std::cerr << filename <<"\n";
 }
 
 void MCTS::load(std::string filename) {
@@ -296,4 +287,9 @@ std::vector<int> MCTS::can_win(int player, connect_four_board board) {
         new_board = board;
     }
     return winners;
+}
+
+int MCTS::get_col(connect_four_board board) {
+    run(board);
+    return get_best_move(board);
 }

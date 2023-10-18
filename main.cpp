@@ -82,8 +82,9 @@ int main(int argc, char* argv[]) {
             delete screen;
             return 0;
         }
-        swap(screen->player_1, screen->player_2);
 
-        game_state = (game_state%3)*3 + game_state/3; // the other player starts
+        // start alternating between players
+        swap(screen->playerfile_1, screen->playerfile_2);
+        game_state = (game_state%SELECTIONS)*SELECTIONS + game_state/SELECTIONS;
     }
 }
