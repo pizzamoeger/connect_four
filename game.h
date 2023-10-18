@@ -33,7 +33,7 @@ const SDL_Color GREEN = {152,251,152, 255};
 const SDL_Color DARK_GREEN = {15,90,50, 255};
 
 void set_col(SDL_Renderer* renderer, SDL_Color color);
-std::pair<int,int> update_elo(int elo_1, int elo_2, int result);
+std::pair<float,float> update_elo(float elo_1, float elo_2, int result);
 
 typedef struct SDL_Circle {
     int x, y, r;
@@ -54,18 +54,10 @@ struct connect_four_board {
 };
 
 struct Player {
-    int elo = 1000;
+    float elo = 1000.0;
     virtual int get_col(connect_four_board board) = 0;
-    virtual void load(std::string filename = "RANDOM/bot.txt") {
-        std::ifstream in(filename);
-        in >> elo;
-        in.close();
-    };
-    virtual void save(std::string filename = "RANDOM/bot.txt") {
-        std::ofstream out(filename);
-        out << elo << "\n";
-        out.close();
-    };
+    virtual void load(std::string filename) = 0;
+    virtual void save(std::string filename) = 0;
 };
 
 struct MCTS : public Player {
@@ -74,7 +66,7 @@ struct MCTS : public Player {
 
     bool random_roll_out = false;
     int num_roll_outs = 100;
-    int iterations = 10000;
+    int iterations = 100;
 
     float c = sqrt(2.0f);
     float discount_factor = 1; // TODO: this is not functional yet
@@ -109,10 +101,14 @@ struct DQN : public Player {
 
 struct Random : public Player {
     int get_col(connect_four_board board);
+    void save(std::string filename = "RANDOM/bot.txt");
+    void load(std::string filename = "RANDOM/bot.txt");
 };
 
 struct Almost_random : public Player {
     int get_col(connect_four_board board);
+    void save(std::string filename = "ALMOST_RANDOM/bot.txt");
+    void load(std::string filename = "ALMOST_RANDOM/bot.txt");
 
     std::vector<int> can_win(int player, connect_four_board board);
     void play(connect_four_board &board);
@@ -122,6 +118,8 @@ struct Human : public Player {
     int get_col(connect_four_board board) {
         return 0;
     };
+    void save(std::string filename = "HUMAN/test.txt");
+    void load(std::string filename = "HUMAN/test.txt");
 };
 
 enum {

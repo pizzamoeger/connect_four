@@ -244,6 +244,7 @@ void MCTS::load(std::string filename) {
         }
     }
     in >> random_roll_out >> num_roll_outs >> iterations >> c >> discount_factor;
+    in >> elo;
     in.close();
 }
 

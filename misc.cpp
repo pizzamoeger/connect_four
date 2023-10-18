@@ -41,10 +41,10 @@ Screen* switch_screen(Screen* screen, int new_screen, int status) {
     return screen;
 }
 
-std::pair<int,int> update_elo(int elo_1, int elo_2, int result) {
+std::pair<float,float> update_elo(float elo_1, float elo_2, int result) {
     const int K = 32;
-    float expected_1 = 1.0 / (1.0 + pow(10.0, (elo_2 - elo_1) / 400.0));
-    float expected_2 = 1.0 / (1.0 + pow(10.0, (elo_1 - elo_2) / 400.0));
+    double expected_1 = 1.0 / (1.0 + pow(10.0, (elo_2 - elo_1) / 400.0));
+    double expected_2 = 1.0 / (1.0 + pow(10.0, (elo_1 - elo_2) / 400.0));
 
     // TODO: could be written nicer
     float score_1;

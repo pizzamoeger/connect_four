@@ -124,36 +124,21 @@ bool Connect_four_screen::init() {
         std::cerr << "loading " << playerfile << "\n";
         assert(playerfile.size() > 0);
 
-        if (playerfile[0] == 'R') {
+        if (playerfile[0] == 'R') player = new Random();
+        else if (playerfile[0] == 'M') player = new MCTS();
+        else if (playerfile[0] == 'D') player = new DQN();
+        else if (playerfile[0] == 'A') player = new Almost_random();
+        else if (playerfile[0] == 'H') player = new Human();
+        else {
+            std::cerr << "error: invalid playerfile, loaded random bot\n";
             player = new Random();
-            return player;
         }
-        if (playerfile[0] == 'M') {
-            player = new MCTS();
-            return player;
-        }
-        if (playerfile[0] == 'D') {
-            player = new DQN();
-            return player;
-        }
-        if (playerfile[0] == 'A') {
-            player = new Almost_random();
-            return player;
-        }
-        if (playerfile[0] == 'H') {
-            player = new Human();
-            return player;
-        }
-        std::cerr << "error: invalid playerfile, loaded random bot\n";
-        player = new Random();
+        player->load(playerfile);
         return player;
     };
 
     player_1 = init_player(playerfile_1, player_1);
     player_2 = init_player(playerfile_2, player_2);
-
-    player_1->load(playerfile_1);
-    player_2->load(playerfile_2);
 
     return 1;
 }
@@ -209,11 +194,12 @@ int Connect_four_screen::loop() {
     SDL_RenderPresent(renderer);
 
     // calculates to 60 fps
-    SDL_Delay(1000 / 60);
+    // TODO tmp
+    // SDL_Delay(1000 / 60);
 
     if (board.turns == 42) { // tie
         // calculate new elo
-        std::pair<int,int> new_elos = update_elo(player_1->elo, player_2->elo, 0);
+        std::pair<float,float> new_elos = update_elo(player_1->elo, player_2->elo, 0);
         player_1->elo = new_elos.first;
         player_2->elo = new_elos.second;
 
@@ -246,14 +232,14 @@ int Connect_four_screen::play() {
         falling();
 
         // checks game is over
-        if (board.win()) { // TODO here elo
+        if (board.win()) {
             board.turn = -board.turn;
             SDL_RenderClear(renderer);
             render_board();
             SDL_RenderPresent(renderer);
 
             // calculate new elo
-            std::pair<int,int> new_elos = update_elo(player_1->elo, player_2->elo, board.turn);
+            std::pair<float, float> new_elos = update_elo(player_1->elo, player_2->elo, board.turn);
             player_1->elo = new_elos.first;
             player_2->elo = new_elos.second;
 
@@ -322,7 +308,8 @@ void Connect_four_screen::pick_col(int col) {
         SDL_RenderPresent(renderer);
 
         //SDL_Delay(rand()%900);
-        SDL_Delay(200);
+        // TODO tmp
+        // SDL_Delay(200);
     }
 }
 
@@ -438,6 +425,8 @@ int End_screen::loop() {
                 break;
         }
     }
+    SDL_Delay(200);
+    return 0;
 
     return CONTINUE;
 }
@@ -564,10 +553,10 @@ std::string Menu_screen::get_text(std::string what) {
         SDL_RenderPresent(renderer);
 
         // calculates to 60 fps
-        SDL_Delay(1000 / 60);
+        // TODO tmp
+        // SDL_Delay(1000 / 60);
     }
 
-    std::cerr << text << "\n";
     if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
 
     return text;

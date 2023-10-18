@@ -14,6 +14,20 @@ int Random::get_col(connect_four_board board) {
     return board.selected_col;
 }
 
+void Random::save(std::string filename) {
+    filename = "RANDOM/bot.txt";
+    std::ofstream out(filename);
+    out << elo << "\n";
+    out.close();
+}
+
+void Random::load(std::string filename) {
+    filename = "RANDOM/bot.txt";
+    std::ifstream in(filename);
+    in >> elo;
+    in.close();
+}
+
 std::vector<int> Almost_random::can_win(int player, connect_four_board board) {
     std::vector<int> winners;
 
@@ -68,4 +82,30 @@ int Almost_random::get_col(connect_four_board board) {
         else board.selected_col = no_loss_moves[rand() % no_loss_moves.size()];
     }
     return board.selected_col;
+}
+
+void Almost_random::save(std::string filename) {
+    filename = "ALMOST_RANDOM/bot.txt";
+    std::ofstream out(filename);
+    out << elo << "\n";
+    out.close();
+}
+
+void Almost_random::load(std::string filename) {
+    filename = "ALMOST_RANDOM/bot.txt";
+    std::ifstream in(filename);
+    in >> elo;
+    in.close();
+}
+
+void Human::save(std::string filename) {
+    std::ofstream out(filename);
+    out << elo << "\n";
+    out.close();
+}
+
+void Human::load(std::string filename) {
+    std::ifstream in(filename);
+    in >> elo;
+    in.close();
 }
