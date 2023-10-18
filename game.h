@@ -32,6 +32,7 @@ const SDL_Color GREEN = {152,251,152, 255};
 const SDL_Color DARK_GREEN = {15,90,50, 255};
 
 void set_col(SDL_Renderer* renderer, SDL_Color color);
+int update_elo(int elo_1, int elo_2, int winner);
 
 typedef struct SDL_Circle {
     int x, y, r;
@@ -51,7 +52,12 @@ struct connect_four_board {
     int get_row();
 };
 
-struct MCTS {
+struct Player {
+    int elo = 1000;
+    virtual int get_col(bool train) = 0;
+};
+
+struct MCTS : public Player {
     std::map<int128, float> wins;
     std::map<int128, int> sims;
 
@@ -62,6 +68,7 @@ struct MCTS {
     float c = sqrt(2.0f);
     float discount_factor = 1; // TODO: this is not functional yet
 
+    int get_col(bool train);
 
     float UCT(int128 v, int128 p);
     int128 get_parent(int128 v);
@@ -170,5 +177,7 @@ struct Menu_screen : public Screen {
     std::string get_text();
     int mode();
 };
+
+Screen* switch_screen(Screen* screen, int new_screen, int status = 0);
 
 #endif //CONNECT_FOUR_GAME_H

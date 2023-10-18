@@ -205,13 +205,6 @@ int Connect_four_screen::play() {
             render_board();
             SDL_RenderPresent(renderer);
 
-            for (int i = 0; i < 6; i++) {
-                for (int j = 0; j < 7; j++){
-                    std::cerr << board.board[i][j]+1 << " ";
-                }
-                std::cerr << "\n";
-            }
-
             if (game_type/3 == MCTS_N || game_type/3 == MCTS_N) {
                 mcts_1.save(player_1);
                 mcts_2.save(player_2);
@@ -408,6 +401,9 @@ int End_screen::loop() {
             case SDL_QUIT:
                 return EXIT;
 
+            case SDL_KEYDOWN:
+                return 0;
+
             default:
                 break;
         }
@@ -451,7 +447,6 @@ int Menu_screen::loop() {
 
                     case SDL_SCANCODE_RETURN:
                         // get the filename where the network is stored
-                        std::cerr << "selected: " << selected[cur_col] << "\n";
                         //if (selected[cur_col] == DQN_N)
                         if (selected[cur_col] == MCTS_N) {
                             player_1 = get_text();
@@ -487,7 +482,6 @@ std::string Menu_screen::get_text() {
     SDL_Event event;
     std::string text = "";
     bool quit = false;
-    std::cerr << "get text\n";
 
     // handles events
     while (!quit) {
@@ -521,7 +515,7 @@ std::string Menu_screen::get_text() {
                     if (event.text.text[0] >= '0' && event.text.text[0] <= '9') text += event.text.text;
                     if (event.text.text[0] == '.') text += event.text.text;
                     if (event.text.text[0] == '_') text += event.text.text;
-                    std::cerr << text << "\n";
+
                     break;
 
                 default:
@@ -531,6 +525,7 @@ std::string Menu_screen::get_text() {
 
         // updates screen
         SDL_RenderClear(renderer);
+        display_text("ENTER FILENAME", -1, SCREEN_HEIGHT/4, TEXT_SIZE, 0, 0, SCREEN_WIDTH, DARK_GREEN);
         if (text.size() != 0) display_text(text.c_str(), -1, -1, TEXT_SIZE, 0, 0, SCREEN_WIDTH, DARK_GREEN);
         set_col(renderer, WHITE);
         SDL_RenderPresent(renderer);
