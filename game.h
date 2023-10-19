@@ -15,6 +15,7 @@
 
 #define int128 boost::multiprecision::int128_t
 #define EXIT_STR "EXIT!" // ! cannot be given as input
+#define DELAY 1000/60
 //#define int128 int
 
 //Screen dimension constants
@@ -55,6 +56,8 @@ struct connect_four_board {
 
 struct Player {
     float elo = 1000.0;
+
+    virtual ~Player() = default;
     virtual int get_col(connect_four_board board) = 0;
     virtual void load(std::string filename) = 0;
     virtual void save(std::string filename) = 0;
@@ -64,8 +67,8 @@ struct MCTS : public Player {
     std::map<int128, float> wins;
     std::map<int128, int> sims;
 
-    bool random_roll_out = false;
-    int num_roll_outs = 100;
+    bool random_roll_out = true;
+    int num_roll_outs = 10;
     int iterations = 100;
 
     float c = sqrt(2.0f);
@@ -152,6 +155,7 @@ struct Screen {
         EXIT = -2
     };
 
+    virtual ~Screen() = default;
     virtual bool init() = 0;
     virtual int loop() = 0;
     virtual void close() = 0;

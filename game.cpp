@@ -121,7 +121,7 @@ bool Connect_four_screen::init() {
 
     // init player
     auto init_player = [&] (std::string playerfile, Player* player) {
-        std::cerr << "loading " << playerfile << "\n";
+        // std::cerr << "loading " << playerfile << "\n";
         assert(playerfile.size() > 0);
 
         if (playerfile[0] == 'R') player = new Random();
@@ -194,8 +194,7 @@ int Connect_four_screen::loop() {
     SDL_RenderPresent(renderer);
 
     // calculates to 60 fps
-    // TODO tmp
-    // SDL_Delay(1000 / 60);
+    SDL_Delay(DELAY);
 
     if (board.turns == 42) { // tie
         // calculate new elo
@@ -307,9 +306,7 @@ void Connect_four_screen::pick_col(int col) {
         set_col(renderer, WHITE);
         SDL_RenderPresent(renderer);
 
-        //SDL_Delay(rand()%900);
-        // TODO tmp
-        // SDL_Delay(200);
+        SDL_Delay(DELAY);
     }
 }
 
@@ -320,19 +317,19 @@ bool Screen::init_all() {
 
     // init SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cout << "Error initializing SDL: " << SDL_GetError() << "\n";
+        std::cerr << "Error initializing SDL: " << SDL_GetError() << "\n";
         return 0;
     }
 
     // init SDL_ttf
     if (TTF_Init() < 0) {
-        std::cout << "Error initializing SDL_ttf: " << TTF_GetError() << "\n";
+        std::cerr << "Error initializing SDL_ttf: " << TTF_GetError() << "\n";
     }
 
     // renderer to render images
     renderer = SDL_CreateRenderer(SDL_CreateWindow("CONNECT FOUR",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,SCREEN_WIDTH, SCREEN_HEIGHT, 0), -1, 0);
     if (renderer == NULL) {
-        std::cout << "Error initializing SDL renderer: " << SDL_GetError() << "\n";
+        std::cerr << "Error initializing SDL renderer: " << SDL_GetError() << "\n";
         return 0;
     }
 
@@ -359,15 +356,15 @@ void Screen::close_all() {
 void Screen::display_text(const char* text, int x, int y, int size, bool show_text_field, int start_x, int width, SDL_Color col) {
     // get font
     font = TTF_OpenFont("01211_AHDSANSB.ttf", size);
-    if (font == NULL) std::cout << "error loading font: " << TTF_GetError() << "\n";
+    if (font == NULL) std::cerr << "error loading font: " << TTF_GetError() << "\n";
 
     // create surface
     surface = TTF_RenderText_Solid(font, text, DARK_BLACK);
-    if (surface == NULL) std::cout << "error creating surface: " << TTF_GetError() << "\n";
+    if (surface == NULL) std::cerr << "error creating surface: " << TTF_GetError() << "\n";
 
     // create texture from surface
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (texture == NULL) std::cout << "error creating texture: " << TTF_GetError() << "\n";
+    if (texture == NULL) std::cerr << "error creating texture: " << TTF_GetError() << "\n";
 
     int w = surface->w;
     int h = surface->h;
@@ -425,10 +422,10 @@ int End_screen::loop() {
                 break;
         }
     }
-    SDL_Delay(200);
-    return 0;
+    SDL_Delay(DELAY);
 
-    return CONTINUE;
+    // FIND-TAG-END
+    return 0;
 }
 
 void End_screen::close() {
@@ -490,6 +487,12 @@ int Menu_screen::loop() {
         }
     }
 
+    // FIND-TAG-MENU-SELECTION
+    selected = {1, 1};
+    playerfile_1 = get_text();
+    playerfile_2 = get_text();
+    return mode();
+
     // updates screen
     SDL_RenderClear(renderer);
     render_screen();
@@ -500,13 +503,14 @@ int Menu_screen::loop() {
 }
 
 std::string Menu_screen::get_text(std::string what) {
-    SDL_Event event;
+    // FIND-TAG-TEXT-INPUT-START
+    /* SDL_Event event;
     std::string text = "";
     bool quit = false;
 
     // handles events
     while (!quit) {
-        //std::cout << text << "\n";
+        //std::cerr << text << "\n";
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
 
@@ -558,6 +562,26 @@ std::string Menu_screen::get_text(std::string what) {
     }
 
     if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
+    // FIND-TAG-TEXT-INPUT-STOP
+    */ std::string text; std::cin >> text;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     return text;
 }

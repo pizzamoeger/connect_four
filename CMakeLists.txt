@@ -11,6 +11,9 @@ set(Boost_LIBRARY_DIR /home/ossha/boost_1_62_0/libs/)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -funroll-loops")
+
+
 add_executable(connect_four main.cpp
         game.cpp
         MCTS.cpp

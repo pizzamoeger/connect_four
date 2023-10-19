@@ -56,7 +56,8 @@ int main(int argc, char* argv[]) {
     int game_state = status; // so that game can be restarted
 
     int counter = 0; // COUNTER IS FOR GETTING INITIAL ELOS
-    while (true && counter < 25) {
+    // FIND-TAG-COUNTER
+    while (true && counter < 2) {
         // clear screen
         SDL_RenderClear(screen->renderer);
         set_col(screen->renderer, WHITE);
@@ -89,6 +90,9 @@ int main(int argc, char* argv[]) {
         game_state = (game_state%SELECTIONS)*SELECTIONS + game_state/SELECTIONS;
 
         counter++;
-        std::cerr << counter << "\n";
+        // std::cerr << counter << "\n";
     }
+    screen->close_all();
+    delete screen;
+    return 0;
 }
