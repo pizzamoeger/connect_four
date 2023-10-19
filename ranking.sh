@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("MCTS" "HUMAN" "RANDOM" "ALMOST_RANDOM" "DQN")
+directories=("MCTS/iterations")
+
+#  "HUMAN" "RANDOM" "ALMOST_RANDOM" "DQN"
 
 # Initialize an empty array to store last lines
 last_lines=()
@@ -12,6 +14,10 @@ for directory in "${directories[@]}"; do
     # Use a subshell to capture the output of the inner loop
     # loop through each file in the directory
     while IFS= read -r -d $'\0' file; do
+
+        if [[ $file == $directory"/RANKING.txt" ]]; then
+            continue
+        fi
 
         # Get the last line of the file
         last_line=$(tail -n 1 "$file")

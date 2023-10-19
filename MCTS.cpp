@@ -128,7 +128,8 @@ int MCTS::roll_out_rand(connect_four_board board) {
         int ind = 0;
         board.selected_col = moves[ind];
         while (ind < 7 && board.board[0][board.selected_col] != 0) {
-            board.selected_col = moves[ind++];
+            board.selected_col = moves[ind];
+            ind++;
         }
         if (ind >= 7) break;
 
@@ -259,7 +260,7 @@ void MCTS::load(std::string filename) {
 
 void MCTS::train(int num_games) {
     for (int i = 0; i < num_games; i++) {
-        if (i % 1000 == 0) std::cerr << i << "\n";
+        if (i % 20 == 0) std::cerr << i << "\n";
 
         connect_four_board board;
         // init board

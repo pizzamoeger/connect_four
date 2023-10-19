@@ -26,12 +26,25 @@ int main(int argc, char* argv[]) {
 
     if (argc > 1) { // train mcts
         std::cerr << "training mcts\n";
-        int num_games = atoi(argv[1]);
         MCTS mcts;
+
+        mcts.random_roll_out = atoi(argv[1]);
+        mcts.num_roll_outs = atoi(argv[2]);
+        mcts.iterations = atoi(argv[3]);
+        int num_games = atoi(argv[4]);
+
         mcts.training = true;
         mcts.train(num_games);
-        if (argc > 2) mcts.save(argv[2]);
-        else mcts.save();
+
+        std::string filename = "MCTS/";
+        if (mcts.random_roll_out) filename += "r_";
+
+        filename += std::to_string(mcts.num_roll_outs);
+        filename += "_"+std::to_string(mcts.iterations);
+        filename += "_"+std::to_string(num_games);
+        filename += ".txt";
+
+        mcts.save(filename);
         return 0;
     }
 

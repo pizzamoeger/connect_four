@@ -18,7 +18,7 @@ add_executable(connect_four main.cpp
         game.cpp
         MCTS.cpp
         misc.cpp
-        DQN.cpp
+        DQL.cpp
         other_bots.cpp)
 
 target_link_libraries(connect_four -lSDL2 -lSDL2_ttf)

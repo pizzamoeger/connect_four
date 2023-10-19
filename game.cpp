@@ -126,7 +126,7 @@ bool Connect_four_screen::init() {
 
         if (playerfile[0] == 'R') player = new Random();
         else if (playerfile[0] == 'M') player = new MCTS();
-        else if (playerfile[0] == 'D') player = new DQN();
+        else if (playerfile[0] == 'D') player = new DQL();
         else if (playerfile[0] == 'A') player = new Almost_random();
         else if (playerfile[0] == 'H') player = new Human();
         else {
@@ -563,6 +563,14 @@ std::string Menu_screen::get_text(std::string what) {
     if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
     // FIND-TAG-TEXT-INPUT-STOP
     // std::string text; cin >> text;
+
+
+
+
+
+
+
+
 
 
 

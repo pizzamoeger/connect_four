@@ -27,29 +27,32 @@ EOF
 make
 
 # the new bot
-new_file=$1
+# new_file=$1
 
 # get a list of all files in the directories
-directories=("MCTS" "RANDOM" "ALMOST_RANDOM" "DQN")
+directories=("MCTS/simulations")
+#  "RANDOM" "ALMOST_RANDOM" "DQN"
 files=()
 for directory in "${directories[@]}"; do
     files+=($(find "$directory" -type f))
 done
+files=( $(shuf -e "${files[@]}") )
 
-n=10
+n=$(( ${#files[@]} * 1 )) # every file plays equal number of games
+
 for ((i = 0; i < n; i++))
 do
     # shuffle the files
-    files=( $(shuf -e "${files[@]}") )
+    suffled_files=( $(shuf -e "${files[@]}") )
 
-    # print the files
     echo "$i"
-    echo "${files[@]}"
-    #new_file=${files[0]}
 
-    # now the first file should play against the second file, the third against the fourth, etc.
-    for ((j = 0; j < ${#files[@]}; j++))
+    # the file at pos i mod the number of files is the file playing against all other files
+    new_file=${files[i%${#files[@]}]}
+
+    for ((j = 0; j < ${#suffled_files[@]}; j++))
     do
+      # skip if the file is the same
       if [[ $new_file == ${files[j]} ]]; then
         continue
       fi

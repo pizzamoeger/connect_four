@@ -21,8 +21,10 @@
 //Screen dimension constants
 const int TEXT_SIZE = 60;
 const int TEXT_DIST = 100;
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
+//const int SCREEN_WIDTH = 1000;
+const int SCREEN_WIDTH = 10;
+//const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
+const int SCREEN_HEIGHT = 10;
 
 // colors
 const SDL_Color RED = {240, 101, 67, 255};
@@ -72,7 +74,7 @@ struct MCTS : public Player {
     bool training = false;
 
     bool random_roll_out = true;
-    int num_roll_outs = 10;
+    int num_roll_outs = 100;
     int iterations = 100;
 
     float c = sqrt(2.0f);
@@ -100,7 +102,7 @@ struct MCTS : public Player {
     std::vector<int> can_win(int player, connect_four_board board);
 };
 
-struct DQN : public Player {
+struct DQL : public Player {
     int get_col(connect_four_board board);
     void load(std::string filename = "DQN/bot.txt");
     void save(std::string filename = "DQN/bot.txt");
