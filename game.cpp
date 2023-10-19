@@ -242,7 +242,6 @@ int Connect_four_screen::play() {
             player_1->elo = new_elos.first;
             player_2->elo = new_elos.second;
 
-            // TODO: only save when prompted
             player_1->save(playerfile_1);
             player_2->save(playerfile_2);
 

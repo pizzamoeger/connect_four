@@ -211,7 +211,7 @@ void MCTS::save(std::string filename) {
     }
     out << "\n";
 
-    out << num_roll_outs << " " << iterations << " " << c << " " << discount_factor << "\n";
+    out << random_roll_out << " " << num_roll_outs << " " << iterations << " " << c << " " << discount_factor << "\n";
     out << elo << "\n";
     out.close();
 }
