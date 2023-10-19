@@ -5,22 +5,20 @@ This is a C++ Program for playing Connect four. It is written in SDL2.
 You can play against a friend or against the computer.
 
 ## Requirements
-You have to have access SDL2, SDL_ttf and boost multiprecision.
+This program uses SDL2, SDL_ttf and boost multiprecision.
 
 ## Compiling and running
 To compile, you can simply run `cmake CmakeList.txt` and then `make`.
 To run, you can run `./connect_four`.
-You can also train an MCTS. To do so, run `./connect_four <num games> <filename where it will be saved>`. Hyperparameters can be adjusted directly in game.h in the MCTS struct.
+You can also train an MCTS. To do so, run `./connect_four <random sim (1/0)> <#sims> <#iterations> <#games>`.
+The results will be stored in the file `MCTS/(r_)#sims_#iterations_#games.txt`.
 
 ## Controls
 If you ran the program without any arguments, a window will open. You can select the first player (manual or computer) by using the arrow key and then pressing enter. Now you will either be prompted for your name, which is pretty straight forward, or the file in which your opponent is stored. For this you have the following options:
 * Random: enter `RANDOM/bot.txt`
 * Almost Random: enter `ALMOST_RANDOM/bot.txt`
-* MCTS: enter `MCTS/(r_)#_#_#.txt`
-  * if there is an r, the simulation will be completely random
-  * the first number is the number of simulations per iteration
-  * the second number is the number of iterations per move
-  * the third number is the number of games
+* MCTS: enter `MCTS/(r_)#sims_#iterations_#games.txt`
+  * Note that if there is an r it means that the simulation of the MCTS is completely random.
 
 After entering the name or file, you press enter again and can select the second player in the same way.
 

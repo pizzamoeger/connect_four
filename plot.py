@@ -1,5 +1,3 @@
-# read lines from MCTS/games/RANKING.txt
-
 import matplotlib.pyplot as plt
 
 dir = "MCTS/simulations/"
