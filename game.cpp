@@ -425,7 +425,7 @@ int End_screen::loop() {
     SDL_Delay(DELAY);
 
     // FIND-TAG-END
-    return 0;
+    return CONTINUE;
 }
 
 void End_screen::close() {
@@ -488,10 +488,10 @@ int Menu_screen::loop() {
     }
 
     // FIND-TAG-MENU-SELECTION
-    selected = {1, 1};
+    /* selected = {1, 1};
     playerfile_1 = get_text();
     playerfile_2 = get_text();
-    return mode();
+    return mode();*/
 
     // updates screen
     SDL_RenderClear(renderer);
@@ -504,7 +504,7 @@ int Menu_screen::loop() {
 
 std::string Menu_screen::get_text(std::string what) {
     // FIND-TAG-TEXT-INPUT-START
-    /* SDL_Event event;
+    SDL_Event event;
     std::string text = "";
     bool quit = false;
 
@@ -563,7 +563,8 @@ std::string Menu_screen::get_text(std::string what) {
 
     if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
     // FIND-TAG-TEXT-INPUT-STOP
-    */ std::string text; std::cin >> text;
+    // std::string text; cin >> text;
+
 
 
 

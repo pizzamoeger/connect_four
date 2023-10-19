@@ -196,6 +196,11 @@ void MCTS::play(connect_four_board &board) {
 }
 
 void MCTS::save(std::string filename) {
+    if (!training) { // reset gained information
+        sims = init_sims;
+        wins = init_wins;
+    }
+
     std::ofstream out(filename);
     for (auto [k, v] : sims) {
         out << k << ":" << v << " ";
@@ -206,7 +211,7 @@ void MCTS::save(std::string filename) {
     }
     out << "\n";
 
-    out << random_roll_out << " " << num_roll_outs << " " << iterations << " " << c << " " << discount_factor << "\n";
+    out << num_roll_outs << " " << iterations << " " << c << " " << discount_factor << "\n";
     out << elo << "\n";
     out.close();
 }
@@ -223,8 +228,8 @@ void MCTS::load(std::string filename) {
         for (char c : line) {
             if (c == ' ') {
                 cur = cur*neg;
-                if (i == 0) sims[key] = int(cur);
-                else wins[key] = int(cur);
+                if (i == 0) init_sims[key] = int(cur);
+                else init_wins[key] = int(cur);
                 cur = 0;
                 neg = 1;
                 continue;
@@ -243,9 +248,13 @@ void MCTS::load(std::string filename) {
             cur += c-'0';
         }
     }
+
     in >> random_roll_out >> num_roll_outs >> iterations >> c >> discount_factor;
     in >> elo;
     in.close();
+
+    wins = init_wins;
+    sims = init_sims;
 }
 
 void MCTS::train(int num_games) {

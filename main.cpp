@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "training mcts\n";
         int num_games = atoi(argv[1]);
         MCTS mcts;
+        mcts.training = true;
         mcts.train(num_games);
         if (argc > 2) mcts.save(argv[2]);
         else mcts.save();
@@ -57,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     int counter = 0; // COUNTER IS FOR GETTING INITIAL ELOS
     // FIND-TAG-COUNTER
-    while (true && counter < 2) {
+    while (true) {
         // clear screen
         SDL_RenderClear(screen->renderer);
         set_col(screen->renderer, WHITE);

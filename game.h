@@ -67,6 +67,10 @@ struct MCTS : public Player {
     std::map<int128, float> wins;
     std::map<int128, int> sims;
 
+    std::map<int128, float> init_wins;
+    std::map<int128, int> init_sims;
+    bool training = false;
+
     bool random_roll_out = true;
     int num_roll_outs = 10;
     int iterations = 100;
