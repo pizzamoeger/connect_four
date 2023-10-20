@@ -220,8 +220,10 @@ int Connect_four_screen::play() {
 
             // calculate new elo
             std::pair<float, float> new_elos = update_elo(player_1->elo, player_2->elo, board.turn);
-            player_1->elo = new_elos.first;
-            player_2->elo = new_elos.second;
+            if (playerfile_1 != playerfile_2) {
+                player_1->elo = new_elos.first;
+                player_2->elo = new_elos.second;
+            }
 
             player_1->save(playerfile_1);
             player_2->save(playerfile_2);
