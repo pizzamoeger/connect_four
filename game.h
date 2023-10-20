@@ -175,8 +175,8 @@ struct Screen {
 struct Connect_four_screen : public Screen {
     int game_type;
     int cur;
-    Player* player_1;
-    Player* player_2;
+    std::unique_ptr<Player> player_1;
+    std::unique_ptr<Player> player_2;
 
     Connect_four_screen(int status) : game_type(status) {};
 

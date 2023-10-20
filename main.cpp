@@ -1,6 +1,6 @@
 #include "game.h"
 
-// run this:  valgrind --leak-check=full cmake-build-debug/connect_four  to die faster :D
+// memleaks: valgrind --leak-check=full --show-leak-kinds=all cmake-build-release/connect_four
 
 int main(int argc, char* argv[]) {
     // init random seed

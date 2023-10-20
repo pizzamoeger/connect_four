@@ -7,29 +7,16 @@ void set_col(SDL_Renderer* renderer, SDL_Color color) {
 }
 
 void SDL_RenderFillCircle(SDL_Renderer* renderer, SDL_Circle* circle) {
-    // this code was kindly provided by Github copilot
-    int offsetx, offsety, d;
+    // resolution
+    int res = 350;
 
-    offsetx = 0;
-    offsety = circle->r;
-    d = circle->r - 1;
-    while (offsety >= offsetx) {
-        SDL_RenderDrawLine(renderer, circle->x - offsety, circle->y + offsetx, circle->x + offsety, circle->y + offsetx);
-        SDL_RenderDrawLine(renderer, circle->x - offsetx, circle->y + offsety, circle->x + offsetx, circle->y + offsety);
-        SDL_RenderDrawLine(renderer, circle->x - offsetx, circle->y - offsety, circle->x + offsetx, circle->y - offsety);
-        SDL_RenderDrawLine(renderer, circle->x - offsety, circle->y - offsetx, circle->x + offsety, circle->y - offsetx);
+    float step = M_PI / (2*res);
+    for (int i = 0; i < res; i++) {
+        float d_x = round(circle->r * cos(step * i));
+        float d_y = round(circle->r * sin(step * i));
 
-        if (d >= 2 * offsetx) {
-            d -= 2 * offsetx + 1;
-            offsetx += 1;
-        } else if (d < 2 * (circle->r - offsety)) {
-            d += 2 * offsety - 1;
-            offsety -= 1;
-        } else {
-            d += 2 * (offsety - offsetx - 1);
-            offsety -= 1;
-            offsetx += 1;
-        }
+        SDL_RenderDrawLine(renderer, circle->x+d_x, circle->y+d_y, circle->x-d_x, circle->y-d_y);
+        SDL_RenderDrawLine(renderer, circle->x+d_y, circle->y-d_x, circle->x-d_y, circle->y+d_x);
     }
 }
 
@@ -40,9 +27,9 @@ void Connect_four_screen::render_board() {
             // iterates over the circles vector and checks if the pixel is in the circle
             bool in_circle = false;
             for (int row_circle = 0; row_circle < 6; row_circle++) {
-                if ((x_pixel - board.circles[row_circle][board.selected_col].x) * (x_pixel - board.circles[row_circle][board.selected_col].x) +
-                    (y_pixel - board.circles[row_circle][board.selected_col].y) * (y_pixel - board.circles[row_circle][board.selected_col].y) <=
-                    board.circles[row_circle][board.selected_col].r * board.circles[row_circle][board.selected_col].r) {
+                if (pow(x_pixel - board.circles[row_circle][board.selected_col].x, 2) +
+                    pow(y_pixel - board.circles[row_circle][board.selected_col].y, 2) <=
+                    pow(board.circles[row_circle][board.selected_col].r, 2)) {
                     in_circle = true;
                     break;
                 }
@@ -90,7 +77,7 @@ bool connect_four_board::win() {
     };
 
     // look for all possible patterns
-    for (int xstp: {0, 1}) {
+    for (int xstp: {0, 1}) { // no -1 needed as this will be covered by -xstp, -ystp
         for (int ystp: {-1, 0, 1}) {
             if (xstp == 0 && ystp == 0) continue;
             if (check(xstp, ystp) + check(-xstp, -ystp) >= 5) return true;
@@ -120,25 +107,26 @@ bool Connect_four_screen::init() {
     }
 
     // init player
-    auto init_player = [&] (std::string playerfile, Player* player) {
-        // std::cerr << "loading " << playerfile << "\n";
-        assert(playerfile.size() > 0);
+    auto init_player = [&] (std::string playerfile) {
+        std::unique_ptr<Player> player = nullptr;
 
-        if (playerfile[0] == 'R') player = new Random();
-        else if (playerfile[0] == 'M') player = new MCTS();
-        else if (playerfile[0] == 'D') player = new DQL();
-        else if (playerfile[0] == 'A') player = new Almost_random();
-        else if (playerfile[0] == 'H') player = new Human();
+        if (playerfile.size() == 0) playerfile = 'i'; // invalid and error will be printed
+
+        if (playerfile[0] == 'R') player = std::make_unique<Random>();
+        else if (playerfile[0] == 'M') player = std::make_unique<MCTS>();
+        else if (playerfile[0] == 'D') player = std::make_unique<DQL>();
+        else if (playerfile[0] == 'A') player = std::make_unique<Almost_random>();
+        else if (playerfile[0] == 'H') player = std::make_unique<Human>();
         else {
             std::cerr << "error: invalid playerfile, loaded random bot\n";
-            player = new Random();
+            player = std::make_unique<Random>();
         }
         player->load(playerfile);
         return player;
     };
 
-    player_1 = init_player(playerfile_1, player_1);
-    player_2 = init_player(playerfile_2, player_2);
+    player_1 = std::move(init_player(playerfile_1));
+    player_2 = std::move(init_player(playerfile_2));
 
     return 1;
 }
@@ -153,8 +141,8 @@ int Connect_four_screen::loop() {
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
 
+            // handling of close button
             case SDL_QUIT:
-                // handling of close button
                 return EXIT;
 
             case SDL_KEYDOWN: {
@@ -172,9 +160,7 @@ int Connect_four_screen::loop() {
 
                     case SDL_SCANCODE_RETURN:
                         ret = play();
-                        if (ret != CONTINUE) {
-                            return ret;
-                        }
+                        if (ret != CONTINUE) return ret;
                         break;
 
                     default:
@@ -194,20 +180,7 @@ int Connect_four_screen::loop() {
     SDL_RenderPresent(renderer);
 
     // calculates to 60 fps
-    SDL_Delay(DELAY);
-
-    if (board.turns == 42) { // tie
-        // calculate new elo
-        std::pair<float,float> new_elos = update_elo(player_1->elo, player_2->elo, 0);
-        player_1->elo = new_elos.first;
-        player_2->elo = new_elos.second;
-
-        // save
-        player_1->save(playerfile_1);
-        player_2->save(playerfile_2);
-
-        return 0;
-    }
+    SDL_Delay(DELAY); // TODO idk wa de linus do meint
 
     ret = CONTINUE;
 
@@ -230,9 +203,14 @@ int Connect_four_screen::play() {
         // animation for falling of tile
         falling();
 
+        // updates the board
+        board.board[board.selected_row][board.selected_col] = board.turn;
+        board.game_state = 7*board.game_state+board.selected_col+1;
+        board.turns++;
+        board.turn = -board.turn;
+
         // checks game is over
-        if (board.win()) {
-            board.turn = -board.turn;
+        if (board.win() || board.turns == 42) {
             SDL_RenderClear(renderer);
             render_board();
             SDL_RenderPresent(renderer);
@@ -245,12 +223,12 @@ int Connect_four_screen::play() {
             player_1->save(playerfile_1);
             player_2->save(playerfile_2);
 
+            if (board.turns == 41) return 0; // tie (no winner
             if (board.turn == 1) return 2; // second player has won
             return 1; // first player has won
         }
 
-        board.turns++;
-        board.turn = -board.turn;
+        // reset row
         board.selected_row = 5;
     }
 
@@ -275,17 +253,9 @@ void Connect_four_screen::falling() {
         set_col(renderer, WHITE);
         SDL_RenderPresent(renderer);
     }
-
-    // updates the board
-    board.board[board.selected_row][board.selected_col] = board.turn;
-    board.game_state = 7*board.game_state+board.selected_col+1;
 }
 
-void Connect_four_screen::close() {
-    // delete players
-    delete player_1;
-    delete player_2;
-}
+void Connect_four_screen::close() {}
 
 void Connect_four_screen::pick_col(int col) {
     // animation for selecting column
@@ -293,7 +263,7 @@ void Connect_four_screen::pick_col(int col) {
         int add = 1;
         if (board.selected_col > col) add = -1;
 
-        // it is thinking really hard
+        // it is thinking really hard // TODO add back in lols
         //if (rand()%5 == 0) add = -add;
 
         board.selected_col += add;
@@ -323,6 +293,7 @@ bool Screen::init_all() {
     // init SDL_ttf
     if (TTF_Init() < 0) {
         std::cerr << "Error initializing SDL_ttf: " << TTF_GetError() << "\n";
+        return 0;
     }
 
     // renderer to render images
@@ -339,7 +310,7 @@ bool Screen::init_all() {
     return 1;
 }
 
-void Screen::close_all() {
+void Screen::close_all() { // TODO destructor maybe
     close();
 
     // destroy renderer
@@ -355,15 +326,24 @@ void Screen::close_all() {
 void Screen::display_text(const char* text, int x, int y, int size, bool show_text_field, int start_x, int width, SDL_Color col) {
     // get font
     font = TTF_OpenFont("01211_AHDSANSB.ttf", size);
-    if (font == NULL) std::cerr << "error loading font: " << TTF_GetError() << "\n";
+    if (font == NULL) {
+        std::cerr << "error loading font: " << TTF_GetError() << "\n";
+        return;
+    }
 
     // create surface
     surface = TTF_RenderText_Solid(font, text, DARK_BLACK);
-    if (surface == NULL) std::cerr << "error creating surface: " << TTF_GetError() << "\n";
+    if (surface == NULL) {
+        std::cerr << "error creating surface: " << TTF_GetError() << "\n";
+        return;
+    }
 
     // create texture from surface
     texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (texture == NULL) std::cerr << "error creating texture: " << TTF_GetError() << "\n";
+    if (texture == NULL) {
+        std::cerr << "error creating texture: " << TTF_GetError() << "\n";
+        return;
+    }
 
     int w = surface->w;
     int h = surface->h;
@@ -556,8 +536,7 @@ std::string Menu_screen::get_text(std::string what) {
         SDL_RenderPresent(renderer);
 
         // calculates to 60 fps
-        // TODO tmp
-        // SDL_Delay(1000 / 60);
+        SDL_Delay(DELAY);
     }
 
     if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
