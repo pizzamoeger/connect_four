@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
         filename += std::to_string(mcts.num_roll_outs);
         filename += "_"+std::to_string(mcts.iterations);
         filename += "_"+std::to_string(num_games);
-        filename += ".txt";
+        filename += ".txt2";
 
         mcts.save(filename);
         return 0;

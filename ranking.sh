@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("MCTS/iterations")
+directories=("MCTS/games")
 
 #  "HUMAN" "RANDOM" "ALMOST_RANDOM" "DQN"
 
@@ -15,7 +15,7 @@ for directory in "${directories[@]}"; do
     # loop through each file in the directory
     while IFS= read -r -d $'\0' file; do
 
-        if [[ $file == $directory"/RANKING.txt" ]]; then
+        if [[ $file == $directory"/RANKING."* ]]; then
             continue
         fi
 
@@ -31,12 +31,15 @@ done
 IFS=$'\n' sorted=($(sort -nr -t':' -k1 <<<"${last_lines[*]}"))
 unset IFS
 
-i=0
+i=1
+> $directory"/RANKING.txt"
 for line in "${sorted[@]}"; do
     # split the line into ELO and filename
     IFS=":" read -ra line_array <<< "$line"
     filename="${line_array[1]}"
     ELO="${line_array[0]}"
-    echo "$i. $filename: $ELO"
+
+    # print "$i. $filename: $ELO" into the ranking file
+    echo "$i. $filename: $ELO" >> $directory"/RANKING.txt"
     ((i++))
 done

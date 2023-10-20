@@ -174,6 +174,7 @@ int Connect_four_screen::loop() {
     }
 
     // updates screen
+    // FIND-TAG-RENDER-SCREEN-1
     SDL_RenderClear(renderer);
     render_board();
     set_col(renderer, WHITE);
@@ -201,6 +202,7 @@ int Connect_four_screen::play() {
     if (board.selected_row >= 0) {
 
         // animation for falling of tile
+        // FIND-TAG-FALLING
         falling();
 
         // updates the board
@@ -211,6 +213,7 @@ int Connect_four_screen::play() {
 
         // checks game is over
         if (board.win() || board.turns == 42) {
+            // FIND-TAG-RENDER-SCREEN-2
             SDL_RenderClear(renderer);
             render_board();
             SDL_RenderPresent(renderer);
@@ -259,6 +262,8 @@ void Connect_four_screen::close() {}
 
 void Connect_four_screen::pick_col(int col) {
     // animation for selecting column
+    // FIND-TAG-PICK-COL
+    // board.selected_col = col;
     while (board.selected_col != col) {
         int add = 1;
         if (board.selected_col > col) add = -1;
@@ -542,33 +547,6 @@ std::string Menu_screen::get_text(std::string what) {
     if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
     // FIND-TAG-TEXT-INPUT-STOP
     // std::string text; cin >> text;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     return text;
 }

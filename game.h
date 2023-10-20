@@ -16,15 +16,15 @@
 
 #define int128 boost::multiprecision::int128_t
 #define EXIT_STR "EXIT!" // ! cannot be given as input
-#define DELAY 1000/60
+#define DELAY 0
 //#define int128 int
 
 //Screen dimension constants
 const int TEXT_SIZE = 60;
 const int TEXT_DIST = 100;
-//const int SCREEN_WIDTH = 10;
+
+// FIND-TAG-DIMENSIONS
 const int SCREEN_WIDTH = 1000;
-//const int SCREEN_HEIGHT = 10;
 const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
 
 // colors

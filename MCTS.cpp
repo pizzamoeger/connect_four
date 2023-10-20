@@ -269,6 +269,7 @@ void MCTS::train(int num_games) {
         board.turn = 1;
         board.turns = 0;
         board.selected_row = 5;
+        board.selected_col = 0;
 
         // play game
         while (true) {
