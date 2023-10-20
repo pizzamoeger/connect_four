@@ -23,7 +23,7 @@ sed -i -e '/\/\/ FIND-TAG-COUNTER/{n; r /dev/stdin' -e 'd;}' main.cpp <<EOF
     while (true && counter < 2) {
 EOF
 # render screen
-sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN/{n; r /dev/stdin' -e 'N;N;N;d;}' game.cpp <<EOF
+sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-1/{n; r /dev/stdin' -e 'N;N;N;d;}' game.cpp <<EOF
         /*SDL_RenderClear(renderer);
         render_board();
         set_col(renderer, WHITE);
@@ -36,16 +36,16 @@ sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-2/{n; r /dev/stdin' -e 'N;N;d;}' game.cp
 EOF
 # disable animation for selecting col
 sed -i -e '/\/\/ FIND-TAG-PICK-COL/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    board.selected_col = col;
+        board.selected_col = col;
 EOF
 # disable animation for falling
 sed -i -e '/\/\/ FIND-TAG-FALLING/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    falling();
+        // falling();
 EOF
 # set dimensions of screen to 0
-sed -i -e '/\/\/ FIND-TAG-SCREEN-DIMENSIONS/{n; r /dev/stdin' -e 'N;d;}' game.h <<EOF
-    const int SCREEN_WIDTH = 0;
-    const int SCREEN_HEIGHT = 0;
+sed -i -e '/\/\/ FIND-TAG-DIMENSIONS/{n; r /dev/stdin' -e 'N;d;}' game.h <<EOF
+const int SCREEN_WIDTH = 0;
+const int SCREEN_HEIGHT = 0;
 EOF
 
 # compile the game
@@ -55,7 +55,7 @@ make
 # new_file=$1
 
 # get a list of all files in the directories
-directories=("MCTS/games")
+directories=("MCTS/final")
 #  "RANDOM" "ALMOST_RANDOM" "DQN"
 
 files=()
@@ -70,7 +70,8 @@ for directory in "${directories[@]}"; do
 done
 files=( $(shuf -e "${files[@]}") )
 
-n=$(( ${#files[@]} * 1 )) # every file plays equal number of games
+n=$(( ${#files[@]} * 0 )) # every file plays equal number of games
+n=1
 for ((i = 0; i < n; i++))
 do
     # shuffle the files
@@ -122,23 +123,23 @@ sed -i -e '/\/\/ FIND-TAG-COUNTER/{n; r /dev/stdin' -e 'd;}' main.cpp <<EOF
     while (true) {
 EOF
 sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-1/{n; r /dev/stdin' -e 'N;N;N;d;}' game.cpp <<EOF
-        SDL_RenderClear(renderer);
-        render_board();
-        set_col(renderer, WHITE);
-        SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
+    render_board();
+    set_col(renderer, WHITE);
+    SDL_RenderPresent(renderer);
 EOF
 sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-2/{n; r /dev/stdin' -e 'N;N;d;}' game.cpp <<EOF
-        SDL_RenderClear(renderer);
-        render_board();
-        SDL_RenderPresent(renderer);
+            SDL_RenderClear(renderer);
+            render_board();
+            SDL_RenderPresent(renderer);
 EOF
 sed -i -e '/\/\/ FIND-TAG-PICK-COL/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
     // board.selected_col = col;
 EOF
 sed -i -e '/\/\/ FIND-TAG-FALLING/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    falling();
+        falling();
 EOF
-sed -i -e '/\/\/ FIND-TAG-SCREEN-DIMENSIONS/{n; r /dev/stdin' -e 'N;d;}' game.h <<EOF
-    const int SCREEN_WIDTH = 1000;
-    const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
+sed -i -e '/\/\/ FIND-TAG-DIMENSIONS/{n; r /dev/stdin' -e 'N;d;}' game.h <<EOF
+const int SCREEN_WIDTH = 1000;
+const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
 EOF

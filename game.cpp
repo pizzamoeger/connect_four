@@ -207,7 +207,7 @@ int Connect_four_screen::play() {
 
         // updates the board
         board.board[board.selected_row][board.selected_col] = board.turn;
-        board.game_state = 7*board.game_state+board.selected_col+1;
+        board.game_state = 7 * board.game_state + board.selected_col + 1;
         board.turns++;
         board.turn = -board.turn;
 
@@ -234,7 +234,6 @@ int Connect_four_screen::play() {
         // reset row
         board.selected_row = 5;
     }
-
     return CONTINUE;
 }
 

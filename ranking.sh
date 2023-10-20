@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("MCTS/games")
+directories=("MCTS/final")
 
 #  "HUMAN" "RANDOM" "ALMOST_RANDOM" "DQN"
 
