@@ -263,7 +263,7 @@ void Connect_four_screen::pick_col(int col) {
         int add = 1;
         if (board.selected_col > col) add = -1;
 
-        // it is thinking really hard // TODO add back in lols
+        // it is thinking really hard // TODO remove or keep
         //if (rand()%5 == 0) add = -add;
 
         board.selected_col += add;
