@@ -1,6 +1,6 @@
 #include "game.h"
 
-Screen* switch_screen(Screen* screen, int new_screen, int status) {
+std::shared_ptr<Screen> switch_screen(std::shared_ptr<Screen> screen, int new_screen, int status) {
     screen->close();
 
     int x = 0;
@@ -14,17 +14,15 @@ Screen* switch_screen(Screen* screen, int new_screen, int status) {
 
     switch (new_screen) {
         case SCREEN_CONNECT_FOUR:
-            delete screen;
-            screen = new Connect_four_screen(status);
+            screen = std::make_shared<Connect_four_screen>(status);
             break;
 
         case SCREEN_END:
             x = (SCREEN_WIDTH - 800) / 2 + 800 / 2;
             y = (SCREEN_HEIGHT - (700-150+TEXT_SIZE+TEXT_DIST)) / 2 + 700 + 70;
 
-            delete screen;
             if (status == 2) status = -1;
-            screen = new End_screen(status, x, y);
+            screen = std::make_shared<End_screen>(status, x, y);
             break;
 
         default:

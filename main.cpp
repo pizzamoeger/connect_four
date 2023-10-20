@@ -1,30 +1,34 @@
 #include "game.h"
 
 // run this:  valgrind --leak-check=full cmake-build-debug/connect_four  to die faster :D
-/*
- * SOME DOCUMENTATION:
- * you can select what plays against what on the menu screen.
- * man is manual, meaning user input
- * dqn is a neural network trained with deep q learning
- * mcts is a monte carlo tree search
- *
- * first you select how the first player will play, then you press enter.
- * now you need to enter from which file you want to load the model.
- * the only characters allowed for the filename are letters and numbers . and _
- *
- * FOR MCTS: THE FILE NEEDS TO BE OF FORMAT:
- * sims (EMPTY IF YOU WANT TO START WITH A NEW MODEL)
- * wins (EMPTY IF YOU WANT TO START WITH A NEW MODEL)
- * random_roll_out num_roll_outs iterations c discount_factor
- *
- * DQN IS NOT FUNCTIONAL YET
- * */
 
 int main(int argc, char* argv[]) {
     // init random seed
     srand(time(NULL));
 
     if (argc > 1) { // train mcts
+        // check if there are 4 arguments
+        if (argc != 5) {
+            std::cerr << "usage: ./connect_four <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+            return 0;
+        }
+
+        // check if first argument is 0 or 1
+        if (argv[1][0] != '0' && argv[1][0] != '1') {
+            std::cerr << "usage: ./connect_four <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+            return 0;
+        }
+
+        // check if all the other arguments are ints
+        for (int i = 2; i < 5; i++) {
+            for (char c : std::string(argv[i])) {
+                if (c < '0' || c > '9') {
+                    std::cerr << "usage: ./connect_four <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+                    return 0;
+                }
+            }
+        }
+
         std::cerr << "training mcts\n";
         MCTS mcts;
 
@@ -48,16 +52,15 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    Screen* screen = new Menu_screen({0, 0});
-    // init random
-    srand(time(NULL));
+    std::vector<int> sel = {0, 0};
+    std::shared_ptr<Screen> screen = std::make_shared<Menu_screen>(sel);
 
-    if (!screen->init_all()) {
+    if (!screen->init_all()) { // TODO ???
         return 0;
     }
 
     // wait for user to select what mode
-    int status = screen->CONTINUE;
+    int status = screen->loop();
     while(status == screen->CONTINUE) {
         status = screen->loop();
     }
@@ -95,7 +98,6 @@ int main(int argc, char* argv[]) {
         while (status == screen->CONTINUE) status = screen->loop();
         if (status == screen->EXIT) {
             screen->close_all();
-            delete screen;
             return 0;
         }
 
@@ -107,6 +109,5 @@ int main(int argc, char* argv[]) {
         // std::cerr << counter << "\n";
     }
     screen->close_all();
-    delete screen;
     return 0;
 }

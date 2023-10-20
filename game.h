@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <fstream>
 #include <cassert>
+#include <memory>
 #include <boost/multiprecision/cpp_int.hpp>
 
 #define int128 boost::multiprecision::int128_t
@@ -21,10 +22,10 @@
 //Screen dimension constants
 const int TEXT_SIZE = 60;
 const int TEXT_DIST = 100;
-//const int SCREEN_WIDTH = 1000;
-const int SCREEN_WIDTH = 10;
-//const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
-const int SCREEN_HEIGHT = 10;
+//const int SCREEN_WIDTH = 10;
+const int SCREEN_WIDTH = 1000;
+//const int SCREEN_HEIGHT = 10;
+const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
 
 // colors
 const SDL_Color RED = {240, 101, 67, 255};
@@ -219,6 +220,6 @@ struct Menu_screen : public Screen {
     int mode();
 };
 
-Screen* switch_screen(Screen* screen, int new_screen, int status = 0);
+std::shared_ptr<Screen> switch_screen(std::shared_ptr<Screen> screen, int new_screen, int status = 0);
 
 #endif //CONNECT_FOUR_GAME_H
