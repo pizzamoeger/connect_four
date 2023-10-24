@@ -40,13 +40,14 @@ int main(int argc, char* argv[]) {
         mcts.training = true;
         mcts.train(num_games);
 
-        std::string filename = "MCTS/";
+        std::string filename = "MCTS_plot/it*sim/";
         if (mcts.random_roll_out) filename += "r_";
 
         filename += std::to_string(mcts.num_roll_outs);
         filename += "_"+std::to_string(mcts.iterations);
         filename += "_"+std::to_string(num_games);
-        filename += ".txt2";
+        // FIND-TAG-FILENAME
+        filename += ".txt4";
 
         mcts.save(filename);
         return 0;

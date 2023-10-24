@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-dir = "MCTS/games/"
+dir = "MCTS_plot/it*sim/"
 
 f = open(dir+"RANKING.txt", "r")
 lines = f.readlines()
@@ -16,10 +16,12 @@ for i in range(len(lines)):
     params = params[0].split("_")
 
     if params[0] == "r":
-        num = int(params[1])+int(params[2])+int(params[3]) - 40
+        num = int(params[1])
+        #+int(params[2])+int(params[3]) - 40
         rand_rollout.append([num, elo])
     else:
-        num = int(params[0])+int(params[1])+int(params[2]) - 40
+        num = int(params[0])
+        #+int(params[1])+int(params[2]) - 40
         not_rand_rollout.append([num, elo])
 
 rand_rollout.sort()
@@ -66,8 +68,8 @@ plt.plot(x, y, label="Not random rollout")
 
 plt.legend()
 
-plt.xlabel("Number of games")
+plt.xlabel("Number of rollouts")
 plt.ylabel("Ranking")
 
 # save as vector image
-plt.savefig("MCTS/games/RANKING.svg", format="svg")
+plt.savefig(dir+"/RANKING.svg", format="svg")
