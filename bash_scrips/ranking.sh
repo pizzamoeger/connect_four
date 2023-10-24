@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("MCTS/bots" "HUMAN" "RANDOM" "ALMOST_RANDOM" "DQL")
+directories=("MCTS_plot/it*sim")
 
 # Initialize an empty array to store last lines
 last_lines=()
@@ -30,7 +30,7 @@ IFS=$'\n' sorted=($(sort -nr -t':' -k1 <<<"${last_lines[*]}"))
 unset IFS
 
 i=1
-> "RANKING.txt"
+> $directory"/RANKING.txt"
 for line in "${sorted[@]}"; do
     # split the line into ELO and filename
     IFS=":" read -ra line_array <<< "$line"
@@ -38,6 +38,6 @@ for line in "${sorted[@]}"; do
     ELO="${line_array[0]}"
 
     # print "$i. $filename: $ELO" into the ranking file
-    echo "$i. $filename: $ELO" >> "RANKING.txt"
+    echo "$i. $filename: $ELO" >> $directory"/RANKING.txt"
     ((i++))
 done

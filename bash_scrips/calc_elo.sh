@@ -55,7 +55,7 @@ make
 # new_file=$1
 
 # get a list of all files in the directories
-directories=("MCTS/final")
+directories=("MCTS_plot/it*sim")
 #  "RANDOM" "ALMOST_RANDOM" "DQN"
 
 files=()
@@ -70,8 +70,7 @@ for directory in "${directories[@]}"; do
 done
 files=( $(shuf -e "${files[@]}") )
 
-n=$(( ${#files[@]} * 0 )) # every file plays equal number of games
-n=1
+n=$(( ${#files[@]} * 1 )) # every file plays equal number of games
 for ((i = 0; i < n; i++))
 do
     # shuffle the files
