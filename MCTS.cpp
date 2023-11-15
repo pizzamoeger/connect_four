@@ -122,17 +122,13 @@ int MCTS::roll_out_rand(connect_four_board board) {
 
     while (!board.win() && board.turns < 42) { // simulate random until game ends
 
-        std::vector<int> moves (7);
-        std::iota(moves.begin(), moves.end(), 0);
-        std::random_shuffle(moves.begin(), moves.end());
-        int ind = 0;
-        board.selected_col = moves[ind];
-        while (ind < 7 && board.board[0][board.selected_col] != 0) {
-            board.selected_col = moves[ind];
-            ind++;
+        std::vector<int> moves;
+        for (int i = 0; i < 7; i++) { // all valid moves
+            if (board.board[0][i] == 0) moves.push_back(i);
         }
-        if (ind >= 7) break;
+        if (moves.size() == 0) continue;
 
+        board.selected_col = moves[rand()%moves.size()]; // get a random valid move
         play(board);
     }
 

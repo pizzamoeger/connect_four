@@ -58,8 +58,8 @@ std::pair<float,float> update_elo(float elo_1, float elo_2, int result) {
         score_1 = 0.5;
     }
 
-    int new_elo_1 = elo_1 + K * (score_1 - expected_1);
-    int new_elo_2 = elo_2 + K * (score_2 - expected_2);
+    int new_elo_1 = round(elo_1 + K * (score_1 - expected_1));
+    int new_elo_2 = round(elo_2 + K * (score_2 - expected_2));
 
     return {new_elo_1, new_elo_2};
 }

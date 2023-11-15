@@ -55,7 +55,7 @@ make
 # new_file=$1
 
 # get a list of all files in the directories
-directories=("MCTS_plot/it*sim")
+directories=("MCTS_plot/games2")
 #  "RANDOM" "ALMOST_RANDOM" "DQN"
 
 files=()
@@ -96,8 +96,8 @@ ${new_file}
 ${files[j]}
 EOF
 
-      ./ranking.sh
-      nohup python3 plot.py
+      # ./bash_scrips/ranking.sh
+      # nohup python3 plot.py
 
     done
 done
