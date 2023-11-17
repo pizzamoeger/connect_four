@@ -44,11 +44,11 @@ for hypar in range(10):
 
             count += 1
         else:
-            new_rr.append([rand_rollout[hypar][i][0], rand_rollout[hypar][i][1]/count])
-            #new_nrr.append([not_rand_rollout[i][0], not_rand_rollout[i][1]/count])
+            new_rr.append([rand_rollout[i][0], rand_rollout[i][1]/count])
+            new_nrr.append([not_rand_rollout[i][0], not_rand_rollout[i][1]/count])
             count = 1
-    new_rr.append([rand_rollout[hypar][-1][0], rand_rollout[hypar][-1][1]/count])
-    #new_nrr.append([not_rand_rollout[-1][0], not_rand_rollout[-1][1]/count])
+    new_rr.append([rand_rollout[-1][0], rand_rollout[-1][1]/count])
+    new_nrr.append([not_rand_rollout[-1][0], not_rand_rollout[-1][1]/count])
 
     rand_rollout[hypar] = new_rr
     #not_rand_rollout = new_nrr

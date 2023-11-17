@@ -16,7 +16,7 @@
 
 #define int128 boost::multiprecision::int128_t
 #define EXIT_STR "EXIT!" // ! cannot be given as input
-#define DELAY 0
+#define DELAY 1000/60
 //#define int128 int
 
 //Screen dimension constants
@@ -103,7 +103,7 @@ struct MCTS : public Player {
     std::vector<int> can_win(int player, connect_four_board board);
 };
 
-struct DQL : public Player {
+struct DQN : public Player {
     int get_col(connect_four_board board);
     void load(std::string filename = "DQN/bot.txt");
     void save(std::string filename = "DQN/bot.txt");

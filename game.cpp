@@ -114,7 +114,7 @@ bool Connect_four_screen::init() {
 
         if (playerfile[0] == 'R') player = std::make_unique<Random>();
         else if (playerfile[0] == 'M') player = std::make_unique<MCTS>();
-        else if (playerfile[0] == 'D') player = std::make_unique<DQL>();
+        else if (playerfile[0] == 'D') player = std::make_unique<DQN>();
         else if (playerfile[0] == 'A') player = std::make_unique<Almost_random>();
         else if (playerfile[0] == 'H') player = std::make_unique<Human>();
         else {
