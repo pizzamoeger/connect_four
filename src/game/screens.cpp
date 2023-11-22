@@ -1,6 +1,7 @@
 // this code is built onto the tutorial https://www.geeksforgeeks.org/sdl-library-in-c-c-with-examples/
 
-#include "game.h"
+#include "../game.h"
+#include "SDL.h"
 
 void set_col(SDL_Renderer* renderer, SDL_Color color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -60,32 +61,6 @@ void Connect_four_screen::render_board() {
     }
 }
 
-bool connect_four_board::win() {
-    // place of last tile
-    int placed_row = get_row()+1;
-    int placed_col = selected_col;
-    int turn = board[placed_row][placed_col];
-
-    // length of continuous pattern of correct tile in dis xstp ystp
-    auto check = [&](int xstp, int ystp) {
-        int col = placed_col, row = placed_row;
-        while (0 <= col && col < 7 && 0 <= row && row < 6 && board[row][col] == turn) {
-            col += xstp;
-            row += ystp;
-        }
-        return std::max(abs(col - placed_col), abs(row - placed_row)); // length
-    };
-
-    // look for all possible patterns
-    for (int xstp: {0, 1}) { // no -1 needed as this will be covered by -xstp, -ystp
-        for (int ystp: {-1, 0, 1}) {
-            if (xstp == 0 && ystp == 0) continue;
-            if (check(xstp, ystp) + check(-xstp, -ystp) >= 5) return true;
-        }
-    }
-    return false;
-}
-
 bool Connect_four_screen::init() {
 
     // init board
@@ -123,7 +98,7 @@ bool Connect_four_screen::init() {
             player = std::make_unique<Random>();
         }
         std::cerr << "loaded " << playerfile << "\n";
-        player->load(playerfile);
+        player->load("data/"+playerfile);
         return player;
     };
 
@@ -576,13 +551,4 @@ void Menu_screen::render_screen() {
 
 int Menu_screen::mode() {
     return selected[0] * SELECTIONS + selected[1];
-}
-
-int connect_four_board::get_row() { // return -1 if invalid
-    int row = 5;
-    while (board[row][selected_col] != 0) {
-        row--;
-        if (row < 0) break;
-    }
-    return row;
 }

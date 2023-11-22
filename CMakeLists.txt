@@ -14,17 +14,16 @@ link_directories(${Boost_LIBRARY_DIR})
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -funroll-loops")
 
 add_executable(connect_four src/game/main.cpp
-        src/game/game.cpp
+        src/game/screens.cpp
         src/MCTS/MCTS.cpp
         src/misc.cpp
         src/DQL/DQL.cpp
         src/other_bots.cpp)
 
-add_executable(train_MCTS src/MCTS/main.cpp  src/game/game.cpp
+add_executable(train_MCTS src/MCTS/main.cpp
         src/MCTS/MCTS.cpp
         src/misc.cpp
         src/DQL/DQL.cpp
         src/other_bots.cpp)
 
 target_link_libraries(connect_four -lSDL2 -lSDL2_ttf)
-target_link_libraries(train_MCTS -lSDL2 -lSDL2_ttf)

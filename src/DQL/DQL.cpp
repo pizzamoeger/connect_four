@@ -1,4 +1,4 @@
-#include "../game/game.h"
+#include "../game.h"
 
 void DQL::load(std::string filename) {
     return;

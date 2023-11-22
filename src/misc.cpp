@@ -1,43 +1,4 @@
-#include "game/game.h"
-
-std::shared_ptr<Screen> switch_screen(std::shared_ptr<Screen> screen, int new_screen, int status) {
-    screen->close();
-
-    int x = 0;
-    int y = 0;
-
-    //SDL_Window* tmp_window = screen->window;
-    SDL_Renderer* tmp_renderer = screen->renderer;
-    connect_four_board tmp_board = screen->board;
-    std::string tmp_player_1 = screen->playerfile_1;
-    std::string tmp_player_2 = screen->playerfile_2;
-
-    switch (new_screen) {
-        case SCREEN_CONNECT_FOUR:
-            screen = std::make_shared<Connect_four_screen>(status);
-            break;
-
-        case SCREEN_END:
-            x = (SCREEN_WIDTH - 800) / 2 + 800 / 2;
-            y = (SCREEN_HEIGHT - (700-150+TEXT_SIZE+TEXT_DIST)) / 2 + 700 + 70;
-
-            if (status == 2) status = -1;
-            screen = std::make_shared<End_screen>(status, x, y);
-            break;
-
-        default:
-            break;
-    }
-
-    //std::swap(screen->window, tmp_window);
-    std::swap(screen->renderer, tmp_renderer);
-    std::swap(screen->board, tmp_board);
-    std::swap(screen->playerfile_1, tmp_player_1);
-    std::swap(screen->playerfile_2, tmp_player_2);
-
-    screen->init();
-    return screen;
-}
+#include "game.h"
 
 std::pair<float,float> update_elo(float elo_1, float elo_2, int result) {
     const int K = 32;
@@ -62,4 +23,40 @@ std::pair<float,float> update_elo(float elo_1, float elo_2, int result) {
     int new_elo_2 = round(elo_2 + K * (score_2 - expected_2));
 
     return {new_elo_1, new_elo_2};
+}
+
+bool connect_four_board::win() {
+    // place of last tile
+    int placed_row = get_row()+1;
+    int placed_col = selected_col;
+    int turn = board[placed_row][placed_col];
+
+    // length of continuous pattern of correct tile in dis xstp ystp
+    auto check = [&](int xstp, int ystp) {
+        int col = placed_col, row = placed_row;
+        while (0 <= col && col < 7 && 0 <= row && row < 6 && board[row][col] == turn) {
+            col += xstp;
+            row += ystp;
+        }
+        return std::max(abs(col - placed_col), abs(row - placed_row)); // length
+    };
+
+    // look for all possible patterns
+    for (int xstp: {0, 1}) { // no -1 needed as this will be covered by -xstp, -ystp
+        for (int ystp: {-1, 0, 1}) {
+            if (xstp == 0 && ystp == 0) continue;
+            if (check(xstp, ystp) + check(-xstp, -ystp) >= 5) return true;
+        }
+    }
+    return false;
+}
+
+
+int connect_four_board::get_row() { // return -1 if invalid
+    int row = 5;
+    while (board[row][selected_col] != 0) {
+        row--;
+        if (row < 0) break;
+    }
+    return row;
 }

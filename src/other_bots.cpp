@@ -1,4 +1,4 @@
-#include "game/game.h"
+#include "game.h"
 
 int Random::get_col(connect_four_board board) {
     std::vector<int> moves (7);
