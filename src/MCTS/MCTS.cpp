@@ -1,4 +1,4 @@
-#include "game.h"
+#include "../game/game.h"
 
 float MCTS::UCT(int128 v, int128 p) {
     if (sims.find(v) == sims.end() || sims.find(p) == sims.end() || wins.find(v) == wins.end()) return 0;
@@ -256,7 +256,7 @@ void MCTS::load(std::string filename) {
 
 void MCTS::train(int num_games) {
     for (int i = 0; i < num_games; i++) {
-        if (i % 20 == 0) std::cerr << i << "\n";
+        if (i % 20 == 0) std::cerr << "Game: " << i << "\n";
 
         connect_four_board board;
         // init board

@@ -56,7 +56,7 @@ make
 
 # get a list of all files in the directories
 directories=("MCTS_plot/games2")
-#  "RANDOM" "ALMOST_RANDOM" "DQN"
+#  "RANDOM" "ALMOST_RANDOM" "DQL"
 
 files=()
 for directory in "${directories[@]}"; do

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-dir = "MCTS_plot/games2/"
+dir = "data/MCTS_plot/games2/"
 
 f = open(dir+"RANKING.txt", "r")
 lines = f.readlines()

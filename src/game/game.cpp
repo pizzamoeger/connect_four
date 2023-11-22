@@ -114,13 +114,15 @@ bool Connect_four_screen::init() {
 
         if (playerfile[0] == 'R') player = std::make_unique<Random>();
         else if (playerfile[0] == 'M') player = std::make_unique<MCTS>();
-        else if (playerfile[0] == 'D') player = std::make_unique<DQN>();
+        else if (playerfile[0] == 'D') player = std::make_unique<DQL>();
         else if (playerfile[0] == 'A') player = std::make_unique<Almost_random>();
         else if (playerfile[0] == 'H') player = std::make_unique<Human>();
         else {
-            std::cerr << "error: invalid playerfile, loaded random bot\n";
+            std::cerr << "Error: invalid playerfile. ";
+            playerfile = "Random Bot";
             player = std::make_unique<Random>();
         }
+        std::cerr << "loaded " << playerfile << "\n";
         player->load(playerfile);
         return player;
     };

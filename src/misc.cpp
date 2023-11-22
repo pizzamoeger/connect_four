@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game/game.h"
 
 std::shared_ptr<Screen> switch_screen(std::shared_ptr<Screen> screen, int new_screen, int status) {
     screen->close();

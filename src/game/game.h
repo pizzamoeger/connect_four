@@ -103,22 +103,22 @@ struct MCTS : public Player {
     std::vector<int> can_win(int player, connect_four_board board);
 };
 
-struct DQN : public Player {
+struct DQL : public Player {
     int get_col(connect_four_board board);
-    void load(std::string filename = "DQN/bot.txt");
-    void save(std::string filename = "DQN/bot.txt");
+    void load(std::string filename = "DQL/bot.txt");
+    void save(std::string filename = "DQL/bot.txt");
 };
 
 struct Random : public Player {
     int get_col(connect_four_board board);
-    void save(std::string filename = "RANDOM/bot.txt");
-    void load(std::string filename = "RANDOM/bot.txt");
+    void save(std::string filename = "data/RANDOM/bot.txt");
+    void load(std::string filename = "data/RANDOM/bot.txt");
 };
 
 struct Almost_random : public Player {
     int get_col(connect_four_board board);
-    void save(std::string filename = "ALMOST_RANDOM/bot.txt");
-    void load(std::string filename = "ALMOST_RANDOM/bot.txt");
+    void save(std::string filename = "data/ALMOST_RANDOM/bot.txt");
+    void load(std::string filename = "data/ALMOST_RANDOM/bot.txt");
 
     std::vector<int> can_win(int player, connect_four_board board);
     void play(connect_four_board &board);
