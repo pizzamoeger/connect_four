@@ -41,6 +41,25 @@ std::shared_ptr<Screen> switch_screen(std::shared_ptr<Screen> screen, int new_sc
     return screen;
 }
 
+SDL_connect_four_board::SDL_connect_four_board() {
+    game_state = 0;
+    turn = 1;
+    turns = 0;
+    selected_row = 5;
+    selected_col = 0;
+
+    int x = (SCREEN_WIDTH - 800) / 2;
+    int y = (SCREEN_HEIGHT - (700-150+TEXT_SIZE+TEXT_DIST)) / 2; // 150 is the offset from the top
+
+    rect = { x, y, 800, 700 };
+    for (int i = 0; i < 6; i++) {
+        for (int j = 0; j < 7; j++){
+            board[i][j] = 0;
+            circles[i][j] = { x+ 100 + 100 * j, y + 100 + 100 * i, 40 };
+        }
+    }
+}
+
 int main() {
     // init random seed
     srand(time(NULL));

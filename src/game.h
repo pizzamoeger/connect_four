@@ -15,8 +15,10 @@ struct connect_four_board {
     int board[6][7];
     int128 game_state;
 
+    connect_four_board();
     bool win();
     int get_row();
+    void play();
 };
 
 struct Player {
@@ -57,8 +59,6 @@ struct MCTS : public Player {
 
     int get_best_move(connect_four_board board);
 
-    void play(connect_four_board &board);
-
     void save(std::string filename = "MCTS/bot.txt");
     void load(std::string filename = "MCTS/bot.txt");
     void train(int num_games);
@@ -83,7 +83,6 @@ struct Almost_random : public Player {
     void load(std::string filename = "data/ALMOST_RANDOM/bot.txt");
 
     std::vector<int> can_win(int player, connect_four_board board);
-    void play(connect_four_board &board);
 };
 
 struct Human : public Player {

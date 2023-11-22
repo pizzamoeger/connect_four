@@ -32,6 +32,8 @@ typedef struct SDL_Circle {
 struct SDL_connect_four_board : public connect_four_board {
     SDL_Circle circles[6][7];
     SDL_Rect rect;
+
+    SDL_connect_four_board();
 };
 
 

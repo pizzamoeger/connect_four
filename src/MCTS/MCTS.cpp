@@ -59,9 +59,8 @@ void MCTS::select(connect_four_board &board) {
             return;
         }
 
-        board.game_state = 7*board.game_state+best_col+1;
         board.selected_col = best_col;
-        play(board); // play selected move
+        board.play(); // play selected move
 
         if (board.win() || board.turns == 42) { // game ended
             return;
@@ -80,8 +79,7 @@ void MCTS::expand(connect_four_board &board) {
 
     int child = unexplored_children[rand()%unexplored_children.size()]; // select one at random
     board.selected_col = child;
-    play(board);
-    board.game_state = 7*board.game_state+child+1;
+    board.play();
 }
 
 int MCTS::roll_out(connect_four_board board) {
@@ -101,7 +99,7 @@ int MCTS::roll_out(connect_four_board board) {
                 new_board.selected_row = new_board.get_row();
                 if (new_board.selected_row < 0) continue; // invalid
 
-                play(new_board); // play the move
+                new_board.play(); // play the move
                 valid_moves.push_back(col); // theoretically possible
 
                 if (can_win(new_board.turn, new_board).empty()) no_loss_moves.push_back(col);
@@ -109,7 +107,7 @@ int MCTS::roll_out(connect_four_board board) {
             if (no_loss_moves.empty()) board.selected_col = valid_moves[rand() % valid_moves.size()]; // will lose no matter what
             else board.selected_col = no_loss_moves[rand() % no_loss_moves.size()];
         }
-        play(board);
+        board.play();
     }
 
     if (board.win()) {
@@ -129,7 +127,7 @@ int MCTS::roll_out_rand(connect_four_board board) {
         if (moves.size() == 0) continue;
 
         board.selected_col = moves[rand()%moves.size()]; // get a random valid move
-        play(board);
+        board.play();
     }
 
     if (board.win()) {
@@ -177,19 +175,6 @@ int MCTS::get_best_move(connect_four_board board) {
 
     int best_col = best_cols[rand()%best_cols.size()]; // select one at random
     return best_col;
-}
-
-void MCTS::play(connect_four_board &board) {
-
-    board.selected_row = board.get_row();
-
-    // play move
-    if (board.selected_row >= 0) {
-        board.board[board.selected_row][board.selected_col] = board.turn;
-        board.turns++;
-        board.turn = -board.turn;
-        board.selected_row = 5;
-    }
 }
 
 void MCTS::save(std::string filename) {
@@ -259,20 +244,13 @@ void MCTS::train(int num_games) {
         if (i % 20 == 0) std::cerr << "Game: " << i << "\n";
 
         connect_four_board board;
-        // init board
-        for (int i = 0; i < 6; i++) for (int j = 0; j < 7; j++) board.board[i][j] = 0;
-        board.game_state = 0;
-        board.turn = 1;
-        board.turns = 0;
-        board.selected_row = 5;
-        board.selected_col = 0;
 
         // play game
         while (true) {
             run(board);
             int col = get_best_move(board);
             board.selected_col = col;
-            play(board);
+            board.play();
 
             if (board.win() || board.turns == 42) break;
         }
@@ -290,7 +268,7 @@ std::vector<int> MCTS::can_win(int player, connect_four_board board) {
         new_board.selected_row = new_board.get_row();
         if (new_board.selected_row < 0) continue; // illegal move
 
-        play(new_board); // play move
+        new_board.play(); // play move
         if (new_board.win()) winners.push_back(col); // if winning move, append
         new_board = board;
     }

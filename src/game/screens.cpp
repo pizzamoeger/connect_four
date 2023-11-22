@@ -64,22 +64,7 @@ void Connect_four_screen::render_board() {
 bool Connect_four_screen::init() {
 
     // init board
-    int x = (SCREEN_WIDTH - 800) / 2;
-    int y = (SCREEN_HEIGHT - (700-150+TEXT_SIZE+TEXT_DIST)) / 2; // 150 is the offset from the top
-
-    board.turn = 1;
-    board.turns = 0;
-
-    board.selected_col = 0;
-    board.selected_row = 5;
-
-    board.rect = { x, y, 800, 700 };
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 7; j++){
-            board.board[i][j] = 0;
-            board.circles[i][j] = { x+ 100 + 100 * j, y + 100 + 100 * i, 40 };
-        }
-    }
+    board = SDL_connect_four_board();
 
     // init player
     auto init_player = [&] (std::string playerfile) {
@@ -183,10 +168,7 @@ int Connect_four_screen::play() {
         falling();
 
         // updates the board
-        board.board[board.selected_row][board.selected_col] = board.turn;
-        board.game_state = 7 * board.game_state + board.selected_col + 1;
-        board.turns++;
-        board.turn = -board.turn;
+        board.play();
 
         // checks game is over
         if (board.win() || board.turns == 42) {

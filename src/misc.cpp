@@ -51,7 +51,6 @@ bool connect_four_board::win() {
     return false;
 }
 
-
 int connect_four_board::get_row() { // return -1 if invalid
     int row = 5;
     while (board[row][selected_col] != 0) {
@@ -59,4 +58,26 @@ int connect_four_board::get_row() { // return -1 if invalid
         if (row < 0) break;
     }
     return row;
+}
+
+void connect_four_board::play() {
+    selected_row = get_row();
+    // play move
+    if (selected_row >= 0) {
+        board[selected_row][selected_col] = turn;
+        game_state = 7*game_state+selected_col+1;
+        turns++;
+        turn = -turn;
+        selected_row = 5;
+    }
+}
+
+connect_four_board::connect_four_board() {
+    // init board
+    for (int i = 0; i < 6; i++) for (int j = 0; j < 7; j++) board[i][j] = 0;
+    game_state = 0;
+    turn = 1;
+    turns = 0;
+    selected_row = 5;
+    selected_col = 0;
 }
