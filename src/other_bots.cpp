@@ -15,14 +15,14 @@ int Random::get_col(connect_four_board board) {
 }
 
 void Random::save(std::string filename) {
-    filename = "RANDOM/bot.txt";
+    filename = "data/RANDOM/bot.txt";
     std::ofstream out(filename);
     out << elo << "\n";
     out.close();
 }
 
 void Random::load(std::string filename) {
-    filename = "RANDOM/bot.txt";
+    filename = "data/RANDOM/bot.txt";
     std::ifstream in(filename);
     in >> elo;
     in.close();
@@ -39,23 +39,11 @@ std::vector<int> Almost_random::can_win(int player, connect_four_board board) {
         new_board.selected_row = new_board.get_row();
         if (new_board.selected_row < 0) continue; // illegal move
 
-        play(new_board); // play move
+        new_board.play(); // play move
         if (new_board.win()) winners.push_back(col); // if winning move, append
         new_board = board;
     }
     return winners;
-}
-
-void Almost_random::play(connect_four_board &board) {
-    board.selected_row = board.get_row();
-
-    // play move
-    if (board.selected_row >= 0) {
-        board.board[board.selected_row][board.selected_col] = board.turn;
-        board.turns++;
-        board.turn = -board.turn;
-        board.selected_row = 5;
-    }
 }
 
 int Almost_random::get_col(connect_four_board board) {
@@ -73,7 +61,7 @@ int Almost_random::get_col(connect_four_board board) {
             new_board.selected_row = new_board.get_row();
             if (new_board.selected_row < 0) continue; // invalid
 
-            play(new_board); // play the move
+            new_board.play(); // play the move
             valid_moves.push_back(col); // theoretically possible
 
             if (can_win(new_board.turn, new_board).empty()) no_loss_moves.push_back(col);
@@ -85,14 +73,14 @@ int Almost_random::get_col(connect_four_board board) {
 }
 
 void Almost_random::save(std::string filename) {
-    filename = "ALMOST_RANDOM/bot.txt";
+    filename = "data/ALMOST_RANDOM/bot.txt";
     std::ofstream out(filename);
     out << elo << "\n";
     out.close();
 }
 
 void Almost_random::load(std::string filename) {
-    filename = "ALMOST_RANDOM/bot.txt";
+    filename = "data/ALMOST_RANDOM/bot.txt";
     std::ifstream in(filename);
     in >> elo;
     in.close();

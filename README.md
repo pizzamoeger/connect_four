@@ -7,6 +7,11 @@ You can play against a friend or against the computer.
 ## Requirements
 This program uses SDL2, SDL_ttf and boost multiprecision.
 
+Install (Ubuntu): 
+sudo apt-get install libsdl2-dev
+sudo apt-get install libsdl2-ttf-dev
+sudo apt install libboost-all-dev
+
 ## Compiling and running
 To compile, you can simply run `cmake CmakeList.txt` and then `make`.
 To run, you can run `./connect_four`.

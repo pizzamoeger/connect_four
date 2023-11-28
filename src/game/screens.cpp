@@ -1,6 +1,7 @@
 // this code is built onto the tutorial https://www.geeksforgeeks.org/sdl-library-in-c-c-with-examples/
 
-#include "game.h"
+#include "../game.h"
+#include "SDL.h"
 
 void set_col(SDL_Renderer* renderer, SDL_Color color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
@@ -60,51 +61,10 @@ void Connect_four_screen::render_board() {
     }
 }
 
-bool connect_four_board::win() {
-    // place of last tile
-    int placed_row = get_row()+1;
-    int placed_col = selected_col;
-    int turn = board[placed_row][placed_col];
-
-    // length of continuous pattern of correct tile in dis xstp ystp
-    auto check = [&](int xstp, int ystp) {
-        int col = placed_col, row = placed_row;
-        while (0 <= col && col < 7 && 0 <= row && row < 6 && board[row][col] == turn) {
-            col += xstp;
-            row += ystp;
-        }
-        return std::max(abs(col - placed_col), abs(row - placed_row)); // length
-    };
-
-    // look for all possible patterns
-    for (int xstp: {0, 1}) { // no -1 needed as this will be covered by -xstp, -ystp
-        for (int ystp: {-1, 0, 1}) {
-            if (xstp == 0 && ystp == 0) continue;
-            if (check(xstp, ystp) + check(-xstp, -ystp) >= 5) return true;
-        }
-    }
-    return false;
-}
-
 bool Connect_four_screen::init() {
 
     // init board
-    int x = (SCREEN_WIDTH - 800) / 2;
-    int y = (SCREEN_HEIGHT - (700-150+TEXT_SIZE+TEXT_DIST)) / 2; // 150 is the offset from the top
-
-    board.turn = 1;
-    board.turns = 0;
-
-    board.selected_col = 0;
-    board.selected_row = 5;
-
-    board.rect = { x, y, 800, 700 };
-    for (int i = 0; i < 6; i++) {
-        for (int j = 0; j < 7; j++){
-            board.board[i][j] = 0;
-            board.circles[i][j] = { x+ 100 + 100 * j, y + 100 + 100 * i, 40 };
-        }
-    }
+    board = SDL_connect_four_board();
 
     // init player
     auto init_player = [&] (std::string playerfile) {
@@ -118,10 +78,12 @@ bool Connect_four_screen::init() {
         else if (playerfile[0] == 'A') player = std::make_unique<Almost_random>();
         else if (playerfile[0] == 'H') player = std::make_unique<Human>();
         else {
-            std::cerr << "error: invalid playerfile, loaded random bot\n";
+            std::cerr << "Error: invalid playerfile. ";
+            playerfile = "Random Bot";
             player = std::make_unique<Random>();
         }
-        player->load(playerfile);
+        std::cerr << "loaded " << playerfile << "\n";
+        player->load("data/"+playerfile);
         return player;
     };
 
@@ -206,10 +168,7 @@ int Connect_four_screen::play() {
         falling();
 
         // updates the board
-        board.board[board.selected_row][board.selected_col] = board.turn;
-        board.game_state = 7 * board.game_state + board.selected_col + 1;
-        board.turns++;
-        board.turn = -board.turn;
+        board.play();
 
         // checks game is over
         if (board.win() || board.turns == 42) {
@@ -574,13 +533,4 @@ void Menu_screen::render_screen() {
 
 int Menu_screen::mode() {
     return selected[0] * SELECTIONS + selected[1];
-}
-
-int connect_four_board::get_row() { // return -1 if invalid
-    int row = 5;
-    while (board[row][selected_col] != 0) {
-        row--;
-        if (row < 0) break;
-    }
-    return row;
 }
