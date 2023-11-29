@@ -12,6 +12,14 @@
 #include <fstream>
 #include <cassert>
 #include <memory>
-#include <boost/multiprecision/cpp_int.hpp>
+#include <string>
+#include <random>
+#include <fstream>
+#include <sstream>
+#include <chrono>
+#include <functional>
+#include <curand.h>
+#include <curand_kernel.h>
+#include <cuda_profiler_api.h>
 
 #endif //CONNECT_FOUR_INCLUDES_H

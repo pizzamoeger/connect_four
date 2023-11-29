@@ -1,4 +1,5 @@
 #include "../game.h"
+#include <boost/multiprecision/cpp_int.hpp>
 
 float MCTS::UCT(int128 v, int128 p) {
     if (sims.find(v) == sims.end() || sims.find(p) == sims.end() || wins.find(v) == wins.end()) return 0;

@@ -2,7 +2,9 @@
 #define CONNECT_FOUR_GAME_H
 
 #include "includes.h"
+#include "neuralnetwork/Network.h"
 
+#include <boost/multiprecision/cpp_int.hpp>
 #define int128 boost::multiprecision::int128_t
 #define EXIT_STR "EXIT!" // ! cannot be given as input
 //#define int128 int
@@ -66,9 +68,16 @@ struct MCTS : public Player {
 };
 
 struct DQL : public Player {
+    Network main;
+    Network target;
+    hyperparams params;
+    int c;
+
     int get_col(connect_four_board board);
     void load(std::string filename = "DQL/bot.txt");
     void save(std::string filename = "DQL/bot.txt");
+
+    void train(int num_games);
 };
 
 struct Random : public Player {
