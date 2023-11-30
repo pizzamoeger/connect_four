@@ -23,20 +23,28 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -funroll-loops")
 file(GLOB MCTS_SOURCES "src/MCTS/*.cpp")
 file(GLOB NN_SOURCES "src/neuralnetwork/*.cu")
 file(GLOB GAME_SOURCES "src/game/*.cpp")
+file(GLOB DQL_SOURCES "src/DQL/*.cpp")
 
 # Add executable and link CUDA sources
 #cuda_add_executable(YourExecutableName ${CUDA_SOURCES})
 
 add_executable(connect_four ${GAME_SOURCES}
         src/MCTS/MCTS.cpp
-        src/misc.cpp
         src/DQL/DQL.cpp
-        ${NN_SOURCES}
-        src/other_bots.cpp)
+        src/misc.cpp
+        src/other_bots.cpp
+        ${NN_SOURCES})
 
 add_executable(train_MCTS ${MCTS_SOURCES}
         src/DQL/DQL.cpp
         src/other_bots.cpp
+        src/misc.cpp
+        ${NN_SOURCES})
+
+add_executable(train_DQL ${DQL_SOURCES}
+        src/MCTS/MCTS.cpp
+        src/other_bots.cpp
+        src/misc.cpp
         ${NN_SOURCES})
 
 target_link_libraries(connect_four -lSDL2 -lSDL2_ttf)

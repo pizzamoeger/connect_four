@@ -71,7 +71,19 @@ struct DQL : public Player {
     Network main;
     Network target;
     hyperparams params;
+
     int c;
+    float epsilon;
+    int replay_buffer_size;
+    int replay_buffer_counter;
+    int batch_size;
+
+    float discount_factor;
+
+    std::vector<std::tuple<connect_four_board, int, float, connect_four_board>> replay_buffer;
+
+    int epsilon_greedy(float* out);
+    float* feedforward(connect_four_board board, Network& net);
 
     int get_col(connect_four_board board);
     void load(std::string filename = "DQL/bot.txt");

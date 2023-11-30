@@ -40,7 +40,7 @@ inline __device__ float activation_function(float x, int activation_func, float 
         case SOFTMAX:
             return softmax(x, sum_of_exp);
         default:
-            return 0;
+            return x;
     }
 }
 
@@ -53,7 +53,7 @@ inline __device__ float activation_function_prime(float x, int activation_func, 
         case SOFTMAX:
             return softmax_prime(x, sum_of_exp);
         default:
-            return 0;
+            return 1;
     }
 }
 

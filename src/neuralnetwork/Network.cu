@@ -85,13 +85,15 @@ void Network::SGD(std::vector<std::pair<float*,float*>> training_data, std::vect
     auto ev = evaluate(test_data, params.test_data_size);
     auto correct = ev.first;
     auto durationEvaluate = ev.second;
-    std::cerr << "0 Accuracy: " << (float) correct / params.test_data_size << " evaluated in " << durationEvaluate << "ms\n";
+    if (params.test_data_size > 0) {
+        std::cerr << "0 Accuracy: " << (float) correct / params.test_data_size << " evaluated in " << durationEvaluate << "ms\n";
+    }
 
     for (int i = 0; i < params.epochs; i++) {
         // time the epoch
         auto start = std::chrono::high_resolution_clock::now();
 
-        std::cerr << i+1 << " ";
+        //std::cerr << i+1 << " ";
 
         // obtain a time-based seed
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -116,7 +118,9 @@ void Network::SGD(std::vector<std::pair<float*,float*>> training_data, std::vect
         correct = ev.first;
         durationEvaluate = ev.second;
 
-        std::cerr << "Accuracy: " << (float) correct / params.test_data_size << ", trained in " << durationTrain << "ms, evaluated in " << durationEvaluate << "ms\n";
+       if (params.test_data_size > 0)
+           std::cerr << "Accuracy: " << (float) correct / params.test_data_size << ", trained in " << durationTrain << "ms, evaluated in " << durationEvaluate << "ms\n";
+       //else std::cerr << "Trained in " << durationTrain << "ms\n";
 
         // reduce learning rate
 	    if (i < 100) {
@@ -159,7 +163,7 @@ void Network::save(std::string filename) {
     for (int l = 0; l < L; l++) layers[l]->save(filename);
 }
 
-void Network::load(std::string filename, hyperparams params) {
+void Network::load(std::string filename, hyperparams params, layer_data* &layers) {
     std::ifstream file;
 
     file.open(filename);
@@ -167,7 +171,8 @@ void Network::load(std::string filename, hyperparams params) {
     std::string str;
     getline(file, line);
     L = atoi(line.c_str());
-    layer_data* layers = new layer_data[L];
+
+    layers = new layer_data[L];
     float** biases = new float* [L];
     float** biases_vel = new float* [L];
     float** weights = new float* [L];
@@ -209,8 +214,7 @@ void Network::load(std::string filename, hyperparams params) {
     }
 
     // free memory
-    delete[] layers;
-    for (int l = 0; l < L; l++) {
+    for (int l = 1; l < L; l++) {
         delete[] biases[l];
         delete[] biases_vel[l];
         delete[] weights[l];

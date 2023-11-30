@@ -31,7 +31,8 @@ enum {
 enum {
     SIGMOID,
     RELU,
-    SOFTMAX
+    SOFTMAX,
+    NONE
 };
 
 enum {
@@ -39,9 +40,9 @@ enum {
     MSE
 };
 
-#define OUTPUT_NEURONS 10
-#define INPUT_NEURONS_X 28
-#define INPUT_NEURONS_Y 28
+#define OUTPUT_NEURONS 7
+#define INPUT_NEURONS_X 6
+#define INPUT_NEURONS_Y 7
 #define INPUT_NEURONS INPUT_NEURONS_X*INPUT_NEURONS_Y
 #define DEL '/'
 
@@ -181,7 +182,7 @@ struct Network {
 
     void save(std::string filename);
 
-    void load(std::string filename, hyperparams params);
+    void load(std::string filename, hyperparams params, layer_data* &layers);
 
     void clear();
 

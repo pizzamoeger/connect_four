@@ -29,8 +29,8 @@ void MCTS::run(connect_four_board board) {
             if (random_roll_out) r_out = roll_out_rand(board); // random rollout
             else r_out = roll_out(board); // random rollout with some logic
 
-            if (r_out == board.turn) result--; // loss
-            else if (r_out == -board.turn) result++; // win
+            if (r_out == board.turn) result++; // loss
+            else if (r_out == -board.turn) result--; // win
         }
         backup(board.game_state, result);
     }
@@ -112,7 +112,7 @@ int MCTS::roll_out(connect_four_board board) {
     }
 
     if (board.win()) {
-        return -board.turn;
+        return board.turn;
     }
     return 0;
 }
@@ -120,7 +120,6 @@ int MCTS::roll_out(connect_four_board board) {
 int MCTS::roll_out_rand(connect_four_board board) {
 
     while (!board.win() && board.turns < 42) { // simulate random until game ends
-
         std::vector<int> moves;
         for (int i = 0; i < 7; i++) { // all valid moves
             if (board.board[0][i] == 0) moves.push_back(i);
@@ -132,7 +131,7 @@ int MCTS::roll_out_rand(connect_four_board board) {
     }
 
     if (board.win()) {
-        return -board.turn;
+        return board.turn;
     }
     return 0;
 }
@@ -146,7 +145,7 @@ void MCTS::backup(int128 game_state, float result) {
         sims[game_state]++;
         wins[game_state] += result;
         game_state = get_parent(game_state);
-        result = -discount_factor*result; // switch result MAYBE ADD DISCOUNT FACTOR?
+        result = -discount_factor*result; // switch result
     }
     if (sims.find(0) == sims.end()) {
         sims[0] = 0;
