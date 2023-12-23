@@ -83,7 +83,7 @@ void MCTS::expand(connect_four_board &board) {
     board.play();
 }
 
-int MCTS::roll_out(connect_four_board board) {
+int MCTS::roll_out(connect_four_board board) { // TODO use almost rand player
 
     while (!board.win() && board.turns < 42) { // simulate until game ends
         if (!can_win(board.turn, board).empty()) // can win in one move
@@ -117,7 +117,7 @@ int MCTS::roll_out(connect_four_board board) {
     return 0;
 }
 
-int MCTS::roll_out_rand(connect_four_board board) {
+int MCTS::roll_out_rand(connect_four_board board) { // TODO use random player
 
     while (!board.win() && board.turns < 42) { // simulate random until game ends
         std::vector<int> moves;

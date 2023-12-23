@@ -82,7 +82,7 @@ struct DQL : public Player {
 
     std::vector<std::tuple<connect_four_board, int, float, connect_four_board>> replay_buffer;
 
-    int epsilon_greedy(float* out);
+    std::vector<int> epsilon_greedy(float* out);
     float* feedforward(connect_four_board board, Network& net);
 
     int get_col(connect_four_board board);

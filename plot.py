@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-dir = "data/MCTS_plot/games2/"
+dir = "data/MCTS_plot/iterations/"
 
 f = open(dir+"RANKING.txt", "r")
 lines = f.readlines()
@@ -71,7 +71,7 @@ for hypar in range(10):
 
 plt.legend(ncol=4)
 
-plt.xlabel("Number of games")
+plt.xlabel("Number of iterations")
 plt.ylabel("Ranking")
 
 # save as vector image

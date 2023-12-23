@@ -32,6 +32,8 @@ enum {
     SIGMOID,
     RELU,
     SOFTMAX,
+    TANH,
+    LEAKY_RELU,
     NONE
 };
 

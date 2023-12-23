@@ -19,6 +19,20 @@ inline __device__ float relu_prime(float x){
     return 0.0f;
 }
 
+inline __device__ float leaky_relu(float x){
+    if (x > 0) return x;
+    else return x*0.1; // TODO store negative slope somewhere
+}
+
+inline __device__ float leaky_relu_prime(float x){
+    if (x > 0) return 1.0f;
+    else return 0.1; // TODO store negative slope somewhere
+}
+
+inline __device__ float tanh_prime(float x){
+    return 1 - tanh(x)*tanh(x);
+}
+
 inline __device__ float softmax(float x, float sum_of_exp) {
     return expf(x)/sum_of_exp;
 }
@@ -31,6 +45,10 @@ inline __device__ float cross_entropy_prime(float out_net, float out_cor) {
     return (out_net-out_cor);
 }
 
+inline __device__ float MSE_prime(float out_net, float out_cor) {
+    return (out_net-out_cor)*(out_net-out_cor);
+}
+
 inline __device__ float activation_function(float x, int activation_func, float sum_of_exp) {
     switch (activation_func) {
         case SIGMOID:
@@ -39,6 +57,10 @@ inline __device__ float activation_function(float x, int activation_func, float 
             return relu(x);
         case SOFTMAX:
             return softmax(x, sum_of_exp);
+        case TANH:
+            return tanh(x);
+        case LEAKY_RELU:
+            return leaky_relu(x);
         default:
             return x;
     }
@@ -52,6 +74,10 @@ inline __device__ float activation_function_prime(float x, int activation_func, 
             return relu_prime(x);
         case SOFTMAX:
             return softmax_prime(x, sum_of_exp);
+        case TANH:
+            return tanh_prime(x);
+        case LEAKY_RELU:
+            return leaky_relu_prime(x);
         default:
             return 1;
     }
@@ -59,6 +85,7 @@ inline __device__ float activation_function_prime(float x, int activation_func, 
 
 inline __device__ float cost_function_prime(float out_net, float out_cor, int cost_function) {
     if (cost_function == CROSSENTROPY) return cross_entropy_prime(out_net, out_cor);
+    else if (cost_function == MSE) return MSE_prime(out_net, out_cor);
     else return 0;
 }
 
@@ -150,15 +177,15 @@ hyperparams get_params() {
     params.mini_batch_size = 16;
     params.epochs = 5;
 
-    params.fully_connected_weights_learning_rate = 1.2*0.017599067515299563;
-    params.fully_connected_biases_learning_rate = 1.2*0.041000786959874205;
-    params.convolutional_weights_learning_rate = 1.2*1.0075;
-    params.convolutional_biases_learning_rate = 1.2*0.011;
+    params.fully_connected_weights_learning_rate = /*1.2*0.017599067515299563*/4.8;
+    params.fully_connected_biases_learning_rate = /*1.2*0.041000786959874205*/ 4.8;
+    params.convolutional_weights_learning_rate = /*1.2*1.0075*/ 0.12;
+    params.convolutional_biases_learning_rate = /*1.2*0.011*/ 0.12;
 
-    params.L2_regularization_term = 0.0018;
+    params.L2_regularization_term = 0;
     params.momentum_coefficient = 0;
 
-    params.cost = CROSSENTROPY;
+    params.cost = MSE;
 
     return params;
 }

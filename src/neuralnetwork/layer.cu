@@ -111,26 +111,26 @@ void fully_connected_layer::save(std::string filename) {
     file << weights_size << DEL;
 
     float* biases = new float [data.n_out.x];
-    cudaMemcpy(biases, dev_biases, data.n_out.x*sizeof(float), cudaMemcpyDeviceToHost);
-    for (int bias = 0; bias < data.n_out.x; bias++) file << biases[bias] << " ";
+    cudaMemcpy(biases, dev_biases, biases_size*sizeof(float), cudaMemcpyDeviceToHost);
+    for (int bias = 0; bias < biases_size; bias++) file << biases[bias] << " ";
     delete[] biases;
     file << DEL;
 
     float* biases_vel = new float [data.n_out.x];
-    cudaMemcpy(biases_vel, dev_biases_vel, data.n_out.x*sizeof(float), cudaMemcpyDeviceToHost);
-    for (int bias_vel = 0; bias_vel < data.n_out.x; bias_vel++) file << biases_vel[bias_vel] << " ";
+    cudaMemcpy(biases_vel, dev_biases_vel, biases_size*sizeof(float), cudaMemcpyDeviceToHost);
+    for (int bias_vel = 0; bias_vel < biases_size; bias_vel++) file << biases_vel[bias_vel] << " ";
     delete[] biases_vel;
     file << DEL;
 
     float* weights = new float [data.n_out.x*data.n_in.x];
-    cudaMemcpy(weights, dev_weights, data.n_out.x*data.n_in.x*sizeof(float), cudaMemcpyDeviceToHost);
-    for (int weight = 0; weight < data.n_out.x*data.n_in.x; weight++) file << weights[weight] << " ";
+    cudaMemcpy(weights, dev_weights, weights_size*sizeof(float), cudaMemcpyDeviceToHost);
+    for (int weight = 0; weight < weights_size; weight++) file << weights[weight] << " ";
     delete[] weights;
     file << DEL;
 
     float* weights_vel = new float [data.n_out.x*data.n_in.x];
-    cudaMemcpy(weights_vel, dev_weights_vel, data.n_out.x*data.n_in.x*sizeof(float), cudaMemcpyDeviceToHost);
-    for (int weight = 0; weight < data.n_out.x*data.n_in.x; weight++) file << weights_vel[weight] << " ";
+    cudaMemcpy(weights_vel, dev_weights_vel, weights_size*sizeof(float), cudaMemcpyDeviceToHost);
+    for (int weight = 0; weight < weights_size; weight++) file << weights_vel[weight] << " ";
     delete[] weights_vel;
     file << "\n";
 

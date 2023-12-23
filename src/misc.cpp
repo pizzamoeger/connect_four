@@ -31,7 +31,7 @@ bool connect_four_board::win() {
     int placed_col = selected_col;
     int turn = board[placed_row][placed_col];
 
-    // length of continuous pattern of correct tile in dis xstp ystp
+    // length of continuous pattern of correct tile in dist xstp ystp
     auto check = [&](int xstp, int ystp) {
         int col = placed_col, row = placed_row;
         while (0 <= col && col < 7 && 0 <= row && row < 6 && board[row][col] == turn) {
@@ -45,7 +45,7 @@ bool connect_four_board::win() {
     for (int xstp: {0, 1}) { // no -1 needed as this will be covered by -xstp, -ystp
         for (int ystp: {-1, 0, 1}) {
             if (xstp == 0 && ystp == 0) continue;
-            if (check(xstp, ystp) + check(-xstp, -ystp) >= 5) return true;
+            if (check(xstp, ystp) + check(-xstp, -ystp) >= /*5*/5) return true;
         }
     }
     return false;
