@@ -16,22 +16,26 @@ void MCTS::run(connect_four_board board) {
         board = old_board;
         select(board); // select most promising leaf node from this state
         if (board.win() || board.turns == 42) {
-            int result = board.win()*num_roll_outs; // you will win every time
+            int result = board.win()*num_roll_outs; // win every time
             backup(board.game_state, result); // backup result
             continue; // game ended (no need to expand)
         }
 
         expand(board); // unexplored child of leaf node
         int result = 0;
+
+        Player* player;
+        if (random_roll_out) player = new Random(); // random rollout
+        else player = new Almost_random(); // random rollout with some logic
+
         for (int j = 0; j < num_roll_outs; j++) { // simulate
-            int r_out;
-
-            if (random_roll_out) r_out = roll_out_rand(board); // random rollout
-            else r_out = roll_out(board); // random rollout with some logic
-
+            int r_out = roll_out(board, player); // get result
             if (r_out == board.turn) result++; // loss
             else if (r_out == -board.turn) result--; // win
+            // else tie
         }
+
+        delete player;
         backup(board.game_state, result);
     }
 }
@@ -83,50 +87,10 @@ void MCTS::expand(connect_four_board &board) {
     board.play();
 }
 
-int MCTS::roll_out(connect_four_board board) { // TODO use almost rand player
+int MCTS::roll_out(connect_four_board board, Player* player) {
 
     while (!board.win() && board.turns < 42) { // simulate until game ends
-        if (!can_win(board.turn, board).empty()) // can win in one move
-            board.selected_col = can_win(board.turn, board)[0];
-        else if (!can_win(-board.turn, board).empty()) // would lose if not playing this move
-            board.selected_col = can_win(-board.turn, board)[0];
-        else {
-            std::vector<int> no_loss_moves;
-            std::vector<int> valid_moves;
-
-            for (int col = 0; col < 7; col++) {
-                connect_four_board new_board = board;
-                new_board.selected_col = col;
-                new_board.selected_row = new_board.get_row();
-                if (new_board.selected_row < 0) continue; // invalid
-
-                new_board.play(); // play the move
-                valid_moves.push_back(col); // theoretically possible
-
-                if (can_win(new_board.turn, new_board).empty()) no_loss_moves.push_back(col);
-            }
-            if (no_loss_moves.empty()) board.selected_col = valid_moves[rand() % valid_moves.size()]; // will lose no matter what
-            else board.selected_col = no_loss_moves[rand() % no_loss_moves.size()];
-        }
-        board.play();
-    }
-
-    if (board.win()) {
-        return board.turn;
-    }
-    return 0;
-}
-
-int MCTS::roll_out_rand(connect_four_board board) { // TODO use random player
-
-    while (!board.win() && board.turns < 42) { // simulate random until game ends
-        std::vector<int> moves;
-        for (int i = 0; i < 7; i++) { // all valid moves
-            if (board.board[0][i] == 0) moves.push_back(i);
-        }
-        if (moves.size() == 0) continue;
-
-        board.selected_col = moves[rand()%moves.size()]; // get a random valid move
+        board.selected_col = player->get_col(board);
         board.play();
     }
 
@@ -178,7 +142,7 @@ int MCTS::get_best_move(connect_four_board board) {
 }
 
 void MCTS::save(std::string filename) {
-    if (!training) { // reset gained information
+    if (!training) { // reset
         sims = init_sims;
         wins = init_wins;
     }
@@ -247,32 +211,13 @@ void MCTS::train(int num_games) {
 
         // play game
         while (true) {
-            run(board);
-            int col = get_best_move(board);
+            int col = get_col(board);
             board.selected_col = col;
             board.play();
 
             if (board.win() || board.turns == 42) break;
         }
     }
-}
-
-std::vector<int> MCTS::can_win(int player, connect_four_board board) {
-    std::vector<int> winners;
-
-    board.turn = player;
-    connect_four_board new_board = board;
-
-    for (int col = 0; col < 7; col++) {
-        new_board.selected_col = col;
-        new_board.selected_row = new_board.get_row();
-        if (new_board.selected_row < 0) continue; // illegal move
-
-        new_board.play(); // play move
-        if (new_board.win()) winners.push_back(col); // if winning move, append
-        new_board = board;
-    }
-    return winners;
 }
 
 int MCTS::get_col(connect_four_board board) {

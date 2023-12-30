@@ -55,8 +55,7 @@ struct MCTS : public Player {
     void run(connect_four_board board);
     void select(connect_four_board &board);
     void expand(connect_four_board &board);
-    int roll_out(connect_four_board board);
-    int roll_out_rand(connect_four_board board);
+    int roll_out(connect_four_board board, Player* player);
     void backup(int128 game_state, float result);
 
     int get_best_move(connect_four_board board);
@@ -64,7 +63,6 @@ struct MCTS : public Player {
     void save(std::string filename = "MCTS/bot.txt");
     void load(std::string filename = "MCTS/bot.txt");
     void train(int num_games);
-    std::vector<int> can_win(int player, connect_four_board board);
 };
 
 struct DQL : public Player {
