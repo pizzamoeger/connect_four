@@ -50,7 +50,6 @@ void Network::init(layer_data* layers, int L, hyperparams params) {
 }
 
 void Network::feedforward(float* a, float* dev_activations, float* dev_derivatives_z) {
-
     cudaMemcpy(dev_activations, a, INPUT_NEURONS*sizeof(float), cudaMemcpyDeviceToDevice);
 
     for (int l = 1; l < L; l++) {
@@ -85,6 +84,10 @@ void Network::SGD(std::vector<std::pair<float*,float*>> training_data, std::vect
     auto ev = evaluate(test_data, params.test_data_size);
     auto correct = ev.first;
     auto durationEvaluate = ev.second;
+
+    //std::cerr << "fully cocnected weights nabla: " << params.fully_connected_weights_learning_rate << ", ";
+    //std::cerr << "fully cocnected biases nabla: " << params.fully_connected_biases_learning_rate << "\n";
+
     if (params.test_data_size > 0) {
         std::cerr << "0 Accuracy: " << (float) correct / params.test_data_size << " evaluated in " << durationEvaluate << "ms\n";
     }

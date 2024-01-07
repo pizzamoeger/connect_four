@@ -72,9 +72,9 @@ def searchopt(i):
     print("Done looking for best {}, found {} to be best".format(names[i], base**params[i]), flush=True)
 
 searchopt(0)
-#searchopt(1)
-testfile = 'train_DQL_conv'
-searchopt(2)
+searchopt(1)
+#testfile = 'train_DQL_conv'
+#searchopt(2)
 #searchopt(3)
 
 print("============================================", flush=True)

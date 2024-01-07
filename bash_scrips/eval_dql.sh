@@ -7,8 +7,11 @@ MCTS="ALMOST_RANDOM"
 # Initialize a variable to hold the sum
 total=0
 
-echo "$7 $1 $2 $3 $4 $5 $6"
+#echo "$7 $1 $2 $3 $4 $5 $6"
 ./$7 $1 $2 $3 $4 $5 $6
+#./train_DQL_conv
+
+#echo "Training done"
 
 # Number of times you want to run the program
 num_runs=10

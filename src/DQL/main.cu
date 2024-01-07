@@ -17,17 +17,17 @@ int main(int argc, char** argv) {
     convolutional.type = LAYER_NUM_CONVOLUTIONAL;
     convolutional.stride_length = 1;
     convolutional.receptive_field_length = 5;
-    convolutional.activation_function = LEAKY_RELU;
+    convolutional.activation_function = RELU;
     convolutional.n_out = {-1,-1, 7};
 
     layer_data fully_connected1;
     fully_connected1.type = LAYER_NUM_FULLY_CONNECTED;
-    fully_connected1.activation_function = LEAKY_RELU;
+    fully_connected1.activation_function = RELU;
     fully_connected1.n_out = {30, 1, 1};
 
     layer_data fully_connected2;
     fully_connected2.type = LAYER_NUM_FULLY_CONNECTED;
-    fully_connected2.activation_function = LEAKY_RELU;
+    fully_connected2.activation_function = RELU;
     fully_connected2.n_out = {50, 1, 1};
 
     layer_data outt;
@@ -40,9 +40,9 @@ int main(int argc, char** argv) {
     layer_data* layers = new layer_data[L];
     layers[0] = input;
     layers[1] = convolutional;
-    layers[2] = convolutional;
+    layers[1] = convolutional;
+    layers[1] = fully_connected1;
     layers[2] = fully_connected2;
-    layers[2] = fully_connected1;
     layers[3] = fully_connected2;
     layers[4] = outt;
 
@@ -61,6 +61,8 @@ int main(int argc, char** argv) {
     params.test_data_size = 0;
     params.training_data_size = 1;
     params.mini_batch_size = 1;
+    params.fully_connected_weights_learning_rate = 0.01;
+    params.fully_connected_biases_learning_rate = 0.01;
 
     // initialize params learning rate reduction
     //params.fcBRed = params.fully_connected_biases_learning_rate*99/10000;
@@ -85,7 +87,7 @@ int main(int argc, char** argv) {
     player.replay_buffer_size = 3000000;
     player.replay_buffer_counter = 0;
     player.replay_buffer.resize(player.replay_buffer_size);
-    player.batch_size = 100;
+    player.batch_size = 1;
     player.epsilon = 1.0;
     player.discount_factor = 0.95;
 

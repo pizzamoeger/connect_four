@@ -6,7 +6,7 @@ void DQL::load(std::string filename) {
     params.test_data_size = 0;
     replay_buffer_size = 10;
     replay_buffer.resize(replay_buffer_size);
-    epsilon = 0.1;
+    epsilon = 0.02;
     discount_factor = 0.8;
 
     layer_data* layers;
@@ -68,6 +68,11 @@ float* DQL::feedforward(connect_four_board board, Network& net) {
         }
     }
 
+    // copy to device
+    float* dev_in;
+    cudaMalloc(&dev_in, INPUT_NEURONS*sizeof(float));
+    cudaMemcpy(dev_in, in, INPUT_NEURONS*sizeof(float), cudaMemcpyHostToDevice);
+
     // feedforward
     net.feedforward(in, net.activations, net.derivatives_z);
 
@@ -76,10 +81,23 @@ float* DQL::feedforward(connect_four_board board, Network& net) {
     cudaMemcpy(out, &net.activations[net.layers[net.L-1]->data.elems], OUTPUT_NEURONS*sizeof(float), cudaMemcpyDeviceToHost);
 
     delete[] in;
+    cudaFree(dev_in);
     return out;
 }
 
 int DQL::get_col(connect_four_board board) {
+    /*for (int l = 0; l < main.L; l++) {
+        float* weights = new float [main.layers[l]->weights_size];
+        cudaMemcpy(weights, main.layers[l]->dev_weights, main.layers[l]->weights_size*sizeof(float), cudaMemcpyDeviceToHost);
+
+        std::cerr << "layer: " << l << ": ";
+        std::cerr << "dev weights: " << main.layers[l]->dev_weights << "\n";
+        for (int w = 0; w < main.layers[l]->weights_size; w++) std::cerr << weights[w] << " ";
+        std::cerr << "\n";
+
+        delete[] weights;
+    }*/
+
     float* out = feedforward(board, main);
 
     // select best action using epsilon greedy
@@ -94,11 +112,13 @@ int DQL::get_col(connect_four_board board) {
         // get reward in next state
         float reward = 0.0;
         if (new_board.win()/*actions[ind] == 2*/) reward = 1.0;
-        if (new_board.get_row() < 0) reward = -1.0; // invalid move
+        if (new_board.get_row() < 0) reward = -10.0; // invalid move
 
         // store in replay buffer
         int index = replay_buffer_counter%replay_buffer_size;
         replay_buffer[index] = {board, actions[ind], reward, new_board};
+        replay_buffer_counter++;
+
         if (replay_buffer_counter < batch_size) {
             ind++;
             continue;
@@ -123,9 +143,13 @@ int DQL::get_col(connect_four_board board) {
             float new_reward = std::get<2>(replay_buffer[indices[experience]]);
             connect_four_board new_state = std::get<3>(replay_buffer[indices[experience]]);
 
+            // todo evtl do loop zum mehreri mol mache?
+
             // loss should be 0 everywhere but at index of action, there we expect it to be reward - max possible in next state
             float* replay_out = feedforward(state, main);
             float* tar_out = feedforward(new_state, target);
+            /*std::cerr << "Output from main network:\n";
+            for (int i = 0; i < OUTPUT_NEURONS; i++) std::cerr << replay_out[i] << " ";*/
 
             float max_out = tar_out[0];
             for (int neuron = 0; neuron < OUTPUT_NEURONS; neuron++) max_out = std::max(max_out, tar_out[neuron]);
@@ -133,20 +157,37 @@ int DQL::get_col(connect_four_board board) {
             if (abs(new_reward) == 1) replay_out[action] = new_reward;
             else replay_out[action] = - discount_factor*max_out;
 
+            /*std::cerr << "\ndesired Output from main network:\n";
+            for (int i = 0; i < OUTPUT_NEURONS; i++) std::cerr << replay_out[i] << " ";
+            std::cerr << "\n";*/
+
             // get corresponding input
             float* replay_in = new float[INPUT_NEURONS];
             for (int row = 0; row < INPUT_NEURONS_X; row++) {
-                for (int col = 0; col < INPUT_NEURONS_Y; col++) replay_in[row*INPUT_NEURONS_Y + col] = state.board[row][col];
+                for (int col = 0; col < INPUT_NEURONS_Y; col++) replay_in[row*INPUT_NEURONS_Y + col] = state.board[row][col];/* (float)rand()/rand();*/
             }
 
-            training_data = {{replay_in, replay_out}};
+            /*std::cerr << "input to main network: \n";
+            for (int i = 0; i < INPUT_NEURONS; i++) std::cerr << replay_in[i] << ", ";
+            std::cerr << "\n";*/
+
+            float* dev_out;
+            float* dev_in;
+            cudaMalloc(&dev_out, OUTPUT_NEURONS*sizeof(float));
+            cudaMalloc(&dev_in, INPUT_NEURONS*sizeof(float));
+            cudaMemcpy(dev_out, replay_out, OUTPUT_NEURONS*sizeof(float), cudaMemcpyHostToDevice);
+            cudaMemcpy(dev_in, replay_in, INPUT_NEURONS*sizeof(float), cudaMemcpyHostToDevice);
+
+            training_data = {{dev_in, dev_out}};
             main.SGD(training_data, test_data);
 
-            //delete[] replay_in;
+            cudaFree(dev_out);
+            cudaFree(dev_in);
+            delete[] replay_in;
             delete[] tar_out;
-            //delete[] replay_out;
-            delete[] training_data[0].first;
-            delete[] training_data[0].second;
+            delete[] replay_out;
+            //delete[] training_data[0].first;
+            //delete[] training_data[0].second;
         }
 
         if (new_board.get_row() >= 0 /*|| actions[ind] == 2*/) break;
@@ -164,9 +205,13 @@ void DQL::train(int num_games) {
        // start state = new connect four board
        connect_four_board board;
 
-
+       //std::cerr << "\n\n\ngame " << game << ":\n";
        // play game
+       int i = 0;
        while (true) {
+
+           //std::cerr << "weihts in move " << i++ << ":\n";
+
            int action;
            /*if (game % 2 == 0) {
                action = a_random_player.get_col(board);
@@ -204,7 +249,6 @@ void DQL::train(int num_games) {
                }
            }
 
-           replay_buffer_counter++;
            if (board.win() || board.turns == 42) break;
 
            /*if (game % 2 == 1) {

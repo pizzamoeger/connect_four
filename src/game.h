@@ -3,11 +3,11 @@
 
 #include "includes.h"
 #include "neuralnetwork/Network.h"
+//#include <boost/multiprecision/cpp_int.hpp>
 
-#include <boost/multiprecision/cpp_int.hpp>
-#define int128 boost::multiprecision::int128_t
+//#define int128 boost::multiprecision::int128_t
 #define EXIT_STR "EXIT!" // ! cannot be given as input
-//#define int128 int
+#define int128 int
 
 struct connect_four_board {
     int turn;
@@ -26,7 +26,7 @@ struct connect_four_board {
 struct Player {
     float elo = 1000.0;
 
-    virtual ~Player() = default;
+    virtual ~Player() = default; // TODO necessary?
     virtual int get_col(connect_four_board board) = 0;
     virtual void load(std::string filename) = 0;
     virtual void save(std::string filename) = 0;

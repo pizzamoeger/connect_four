@@ -27,7 +27,7 @@ void fully_connected_layer::init(layer_data data, layer_data data_previous, floa
     // https://wandb.ai/sauravmaheshkar/initialization/reports/A-Gentle-Introduction-To-Weight-Initialization-for-Neural-Networks--Vmlldzo2ODExMTg
     // https://stats.stackexchange.com/questions/373136/softmax-weights-initialization
     float stddev;
-    if (data.activation_function == RELU) stddev = sqrt(2.0/data.n_in.x); // He-et-al
+    if (data.activation_function == RELU || data.activation_function == LEAKY_RELU) stddev = sqrt(2.0/data.n_in.x); // He-et-al
     else stddev = sqrt(2.0/data.n_in.x+data.n_out.x); // Xavier
     float* dev_stddev;
     cudaMalloc((void**) &dev_stddev, sizeof(float));

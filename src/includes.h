@@ -10,7 +10,7 @@
 #include <numeric>
 #include <algorithm>
 #include <fstream>
-#include <cassert>
+#include <assert.h>
 #include <memory>
 #include <string>
 #include <random>
@@ -21,5 +21,7 @@
 #include <curand.h>
 #include <curand_kernel.h>
 #include <cuda_profiler_api.h>
+#include <stdio.h>
+#include <iomanip>
 
 #endif //CONNECT_FOUR_INCLUDES_H
