@@ -23,7 +23,6 @@ const SDL_Color GREEN = {152,251,152, 255};
 const SDL_Color DARK_GREEN = {15,90,50, 255};
 
 void set_col(SDL_Renderer* renderer, SDL_Color color);
-std::pair<float,float> update_elo(float elo_1, float elo_2, int result);
 
 typedef struct SDL_Circle {
     int x, y, r;

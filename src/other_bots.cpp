@@ -1,13 +1,13 @@
 #include "game.h"
 
 int Random::get_col(connect_four_board board) {
-    std::vector<int> moves (7);
+    std::vector<int> moves (INPUT_NEURONS_W);
     std::iota(moves.begin(), moves.end(), 0);
     std::random_shuffle(moves.begin(), moves.end());
 
     int ind = 0;
     board.selected_col = moves[ind];
-    while (ind < 7 && board.board[0][board.selected_col] != 0) {
+    while (ind < INPUT_NEURONS_W && board.board[0][board.selected_col] != 0) {
         board.selected_col = moves[ind++];
     }
 
@@ -34,7 +34,7 @@ std::vector<int> Almost_random::can_win(int player, connect_four_board board) {
     board.turn = player;
     connect_four_board new_board = board;
 
-    for (int col = 0; col < 7; col++) {
+    for (int col = 0; col < INPUT_NEURONS_W; col++) {
         new_board.selected_col = col;
         new_board.selected_row = new_board.get_row();
         if (new_board.selected_row < 0) continue; // illegal move
@@ -55,7 +55,7 @@ int Almost_random::get_col(connect_four_board board) {
         std::vector<int> no_loss_moves;
         std::vector<int> valid_moves;
 
-        for (int col = 0; col < 7; col++) {
+        for (int col = 0; col < INPUT_NEURONS_W; col++) {
             connect_four_board new_board = board;
             new_board.selected_col = col;
             new_board.selected_row = new_board.get_row();

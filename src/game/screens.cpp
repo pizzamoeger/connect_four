@@ -184,8 +184,8 @@ int Connect_four_screen::play() {
                 player_2->elo = new_elos.second;
             }
 
-            player_1->save(playerfile_1);
-            player_2->save(playerfile_2);
+            player_1->save("data/"+playerfile_1);
+            player_2->save("data/"+playerfile_2);
 
             if (board.turns == 41) return 0; // tie (no winner
             if (board.turn == 1) return 2; // second player has won

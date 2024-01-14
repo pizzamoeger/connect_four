@@ -235,7 +235,7 @@ void convolutional_layer::init(layer_data data, layer_data data_previous, float*
     // https://stats.stackexchange.com/questions/373136/softmax-weights-initialization
     float stddev;
     // TODO He-et-al convolutional
-    if (data.activation_function == RELU) stddev = sqrt(2.0/(data.n_in.x*data.n_in.y*data.n_in.feature_maps)); // He-et-al
+    if (data.activation_function == RELU || data.activation_function == LEAKY_RELU) stddev = sqrt(2.0/(data.n_in.x*data.n_in.y*data.n_in.feature_maps)); // He-et-al
     else stddev = sqrt(2.0/(data.n_in.x*data.n_in.y*data.n_in.feature_maps+(data.n_out.x*data.n_out.y*data.n_out.feature_maps))); // Xavier
 
     float* dev_stddev;
@@ -276,7 +276,7 @@ void convolutional_layer::backprop(float* activations, float* derivative_z) {
     blocks = dim3(data.n_in.x, data.n_in.y, data.n_in.feature_maps);
     threads = dim3(data.receptive_field_length, data.receptive_field_length, data.n_out.feature_maps);
 
-    dev_backprop<<<blocks, threads, data.n_out.x * data.n_out.y * data.n_out.feature_maps * sizeof(float)>>>(delta,
+    dev_backprop<<<blocks, threads, data.receptive_field_length * data.receptive_field_length * data.n_out.feature_maps * sizeof(float)>>>(delta,
                                                                               &derivative_z[data.elems - data.n_in.x],
                                                                               new_delta, dev_weights, &dev_data->n_out, &dev_data->stride_length);
 

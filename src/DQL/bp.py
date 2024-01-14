@@ -71,11 +71,13 @@ def searchopt(i):
     params[i] = (l + r) / 2
     print("Done looking for best {}, found {} to be best".format(names[i], base**params[i]), flush=True)
 
-searchopt(0)
-searchopt(1)
-#testfile = 'train_DQL_conv'
-#searchopt(2)
-#searchopt(3)
+#searchopt(0)
+#searchopt(1)
+params[0] = -27.66
+params[1] = -10.46
+testfile = 'train_DQL_conv'
+searchopt(2)
+searchopt(3)
 
 print("============================================", flush=True)
 print("I am done: the best parameters are: {}".format([base**el for el in params]), flush=True)

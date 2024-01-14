@@ -3,33 +3,40 @@
 
 #include "includes.h"
 #include "neuralnetwork/Network.h"
-//#include <boost/multiprecision/cpp_int.hpp>
 
-//#define int128 boost::multiprecision::int128_t
 #define EXIT_STR "EXIT!" // ! cannot be given as input
-#define int128 int
+#define int128 __int128
 
 struct connect_four_board {
     int turn;
     int turns;
     int selected_col;
     int selected_row;
-    int board[6][7];
+    int board[INPUT_NEURONS_H][INPUT_NEURONS_W];
     int128 game_state;
 
     connect_four_board();
     bool win();
     int get_row();
     void play();
+
+    friend std::ostream& operator<<(std::ostream& os, const connect_four_board& board);
+};
+
+struct Experience {
+    connect_four_board state;
+    int action;
+    float reward;
+    connect_four_board new_state;
 };
 
 struct Player {
     float elo = 1000.0;
 
-    virtual ~Player() = default; // TODO necessary?
     virtual int get_col(connect_four_board board) = 0;
     virtual void load(std::string filename) = 0;
     virtual void save(std::string filename) = 0;
+    virtual void train(int num_games) {}
 };
 
 struct MCTS : public Player {
@@ -47,8 +54,6 @@ struct MCTS : public Player {
     float c = sqrt(2.0f);
     float discount_factor = 1; // TODO: this is not functional yet
 
-    int get_col(connect_four_board board);
-
     float UCT(int128 v, int128 p);
     int128 get_parent(int128 v);
 
@@ -60,6 +65,7 @@ struct MCTS : public Player {
 
     int get_best_move(connect_four_board board);
 
+    int get_col(connect_four_board board);
     void save(std::string filename = "MCTS/bot.txt");
     void load(std::string filename = "MCTS/bot.txt");
     void train(int num_games);
@@ -78,9 +84,15 @@ struct DQL : public Player {
 
     float discount_factor;
 
-    std::vector<std::tuple<connect_four_board, int, float, connect_four_board>> replay_buffer;
+    std::vector<Experience> replay_buffer;
 
-    std::vector<int> epsilon_greedy(float* out);
+    int epsilon_greedy(float* out, connect_four_board board);
+    float* get_input(connect_four_board board);
+    float* get_output(Experience exp);
+    std::vector<Experience> get_random_batch();
+    Experience get_experience(connect_four_board board, int action);
+    void store_in_replay_buffer(Experience exp);
+    void copy_main_to_target();
     float* feedforward(connect_four_board board, Network& net);
 
     int get_col(connect_four_board board);
@@ -105,11 +117,14 @@ struct Almost_random : public Player {
 };
 
 struct Human : public Player {
-    int get_col(connect_four_board board) {
-        return 0;
-    };
+    int get_col(connect_four_board board) {return 0;}
     void save(std::string filename = "HUMAN/test.txt");
     void load(std::string filename = "HUMAN/test.txt");
 };
+
+std::pair<float,float> update_elo(float elo_1, float elo_2, int result);
+
+std::istream& operator>>(std::istream& in, int128& nim);
+std::ostream& operator<<(std::ostream& os, const int128& num);
 
 #endif //CONNECT_FOUR_GAME_H

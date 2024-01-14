@@ -15,7 +15,7 @@ void MCTS::run(connect_four_board board) {
     for (int i = 0; i < iterations; i++) {
         board = old_board;
         select(board); // select most promising leaf node from this state
-        if (board.win() || board.turns == 42) {
+        if (board.win() || board.turns == INPUT_NEURONS) {
             int result = board.win()*num_roll_outs; // win every time
             backup(board.game_state, result); // backup result
             continue; // game ended (no need to expand)
@@ -67,7 +67,7 @@ void MCTS::select(connect_four_board &board) {
         board.selected_col = best_col;
         board.play(); // play selected move
 
-        if (board.win() || board.turns == 42) { // game ended
+        if (board.win() || board.turns == INPUT_NEURONS) { // game ended
             return;
         }
     }
@@ -89,7 +89,7 @@ void MCTS::expand(connect_four_board &board) {
 
 int MCTS::roll_out(connect_four_board board, Player* player) {
 
-    while (!board.win() && board.turns < 42) { // simulate until game ends
+    while (!board.win() && board.turns < INPUT_NEURONS) { // simulate until game ends
         board.selected_col = player->get_col(board);
         board.play();
     }
@@ -166,32 +166,19 @@ void MCTS::load(std::string filename) {
     std::ifstream in(filename);
 
     for (int i = 0; i < 2; i++) {
-        std::string line;
-        std::getline(in, line);
-        int128 key = 0;
-        int128 cur = 0;
-        int neg = 1;
-        for (char c : line) {
-            if (c == ' ') {
-                cur = cur*neg;
-                if (i == 0) init_sims[key] = int(cur);
-                else init_wins[key] = int(cur);
-                cur = 0;
-                neg = 1;
-                continue;
-            }
-            if (c == ':') {
-                key = cur;
-                cur = 0;
-                neg = 1;
-                continue;
-            }
-            if (c == '-') {
-                neg = -1;
-                continue;
-            }
-            cur *= 10;
-            cur += c-'0';
+        while(true) {
+            int128 key = 0;
+            int val = 0;
+            in >> key;
+            in >> val;
+
+            if (i == 0) init_sims[key] = val;
+            else init_wins[key] = val;
+
+            char c;
+            in >> c; in >> c;
+            if (c == '\n') break;
+            in.seekg(-1, in.cur);
         }
     }
 
@@ -215,7 +202,7 @@ void MCTS::train(int num_games) {
             board.selected_col = col;
             board.play();
 
-            if (board.win() || board.turns == 42) break;
+            if (board.win() || board.turns == INPUT_NEURONS) break;
         }
     }
 }

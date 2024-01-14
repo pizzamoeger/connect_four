@@ -1,4 +1,4 @@
-dir="MCTS_plot/games1/*"
+dir="data/MCTS_plot/iterations/*"
 for file in $dir; do
     # if file is RANKING.*, skip
     if [[ $file == *"RANKING"* ]]; then

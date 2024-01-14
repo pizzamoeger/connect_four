@@ -2,7 +2,7 @@
 
 DQL="DQL/test.txt"
 MCTS="MCTS/20_20_2.txt"
-MCTS="ALMOST_RANDOM"
+MCTS="RANDOM"
 
 # Initialize a variable to hold the sum
 total=0

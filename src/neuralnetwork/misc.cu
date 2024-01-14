@@ -20,8 +20,11 @@ inline __device__ float relu_prime(float x){
 }
 
 inline __device__ float leaky_relu(float x){
-    if (x > 0) return x;
-    else return x*0.1; // TODO store negative slope somewhere
+    float ret;
+    if (x > 0) ret = x;
+    else ret = x*0.1; // TODO store negative slope somewhere
+    printf("Der wert x ist %f und der return wert ist %f\n", x, ret);
+    return ret;
 }
 
 inline __device__ float leaky_relu_prime(float x){
@@ -177,8 +180,8 @@ hyperparams get_params() {
     params.mini_batch_size = 16;
     params.epochs = 5;
 
-    params.fully_connected_weights_learning_rate = /*1.2*0.017599067515299563*/4.8;
-    params.fully_connected_biases_learning_rate = /*1.2*0.041000786959874205*/ 4.8;
+    params.fully_connected_weights_learning_rate = /*1.2*0.017599067515299563*/1.3462326448265383e-05;
+    params.fully_connected_biases_learning_rate = /*1.2*0.041000786959874205*/ 0.014384334484457958;
     params.convolutional_weights_learning_rate = /*1.2*1.0075*/ 0.12;
     params.convolutional_biases_learning_rate = /*1.2*0.011*/ 0.12;
 
@@ -206,7 +209,7 @@ __global__ void backprop_update_w_b_fc (float* dev_weights_upt, float* dev_delta
     int neuron = blockIdx.x;
     int previous_neuron = threadIdx.x;
     dev_weights_upt[get_fully_connected_weight_index_dev(neuron, previous_neuron, *data_n_in_x)] += dev_delta[neuron] * dev_activations[previous_neuron];
-    //printf("dev delta: %f, dev a: %f, dev_w_u: %f, neuron: %d, prev_n: %d\n", dev_delta[neuron], dev_activations[previous_neuron], dev_weights_upt[get_fully_connected_weight_index_dev(neuron, previous_neuron, *data_n_in_x)], neuron, previous_neuron);
+    printf("dev delta: %f, dev a: %f, dev_w_u: %f, neuron: %d, prev_n: %d\n", dev_delta[neuron], dev_activations[previous_neuron], dev_weights_upt[get_fully_connected_weight_index_dev(neuron, previous_neuron, *data_n_in_x)], neuron, previous_neuron);
 
     if (previous_neuron == 0) dev_biases_updt[neuron] += dev_delta[neuron];
 }
@@ -226,7 +229,9 @@ __global__ void update (float* biases_vel, float* weights_vel, float* weights_up
                                  (params->fully_connected_biases_learning_rate / params->mini_batch_size) *
                                  biases_updt[neuron];
         }
+        float vorho = biases[neuron];
         biases[neuron] += biases_vel[neuron];
+        printf("Bias at index %d: %f (vorho)  %f (noho), updt: %f\n", neuron,vorho, biases[neuron] , biases_updt[neuron] );
         biases_updt[neuron] = 0;
     }
 
@@ -246,7 +251,7 @@ __global__ void update (float* biases_vel, float* weights_vel, float* weights_up
                 weights_updt[weight];
         float voho = weights[weight];
         weights[weight] = (1 - params->fully_connected_weights_learning_rate * params->L2_regularization_term) * weights[weight] + weights_vel[weight];
-        //printf("Weight at index %d: %f (vorho)  %f (noho), updt: %f\n", weight,voho, weights[weight], weights_updt[weight]);
+        printf("Weight at index %d: %f (vorho)  %f (noho), updt: %f\n", weight,voho, weights[weight], weights_updt[weight]);
     }
 
     weights_updt[weight] = 0;
@@ -341,11 +346,11 @@ __global__ void dev_feedforward(float* weights, float* new_a, network_data* n_in
     if (previous_neuron == 0) {
         int neuron_b = neuron;
         if (stride_length != NULL) neuron_b = blockIdx.z;
-        sum[previous_neuron] += biases[neuron_b];
-        new_dz[neuron] = activation_function_prime(sum[previous_neuron], *activation_func, 0);
-        new_a[neuron] = activation_function(sum[previous_neuron], *activation_func, 0);
+        sum[0] += biases[neuron_b];
+        new_dz[neuron] = activation_function_prime(sum[0], *activation_func, 0);
+        new_a[neuron] = activation_function(sum[0], *activation_func, 0);
 
-        //printf("Activation: %f, z: %f, neuron: %d\n", new_a[neuron], sum[0], neuron);
+        printf("Activation: %f, z: %f, neuron: %d\n", new_a[neuron], sum[0], neuron);
     }
 }
 
@@ -377,7 +382,7 @@ __global__ void dev_backprop(float* delta, float* dz, float* new_delta, float* w
 
     if (tid == 0) {
         new_delta[previous_neuron] = sum[tid]*dz[previous_neuron];
-        //printf("new delta of %d is %f, dz is %f\n", previous_neuron, new_delta[previous_neuron], dz[previous_neuron]);
+        printf("new delta of %d is %f, dz is %f\n", previous_neuron, new_delta[previous_neuron], dz[previous_neuron]);
     }
 }
 

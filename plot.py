@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-dir = "data/MCTS_plot/iterations/"
+dir = "data/MCTS_plot/games/"
 
 f = open(dir+"RANKING.txt", "r")
 lines = f.readlines()
@@ -8,8 +8,8 @@ f.close()
 
 rand_rollout = []
 not_rand_rollout = []
-for i in range(10):
-    rand_rollout.append([])
+#for i in range(10):
+#    rand_rollout.append([])
 
 for i in range(len(lines)):
     lines[i] = lines[i].split(" ")
@@ -18,13 +18,15 @@ for i in range(len(lines)):
     params = params[0].split("_")
 
     if params[0] == "r":
-        num = int(params[1])+int(params[2])+int(params[3]) - 2
-        rand_rollout[int(params[4])-1].append([num, elo])
+        num = int(params[1])+int(params[2])+int(params[3]) - 16
+        #num = int(params[1])
+        rand_rollout.append([num, elo]) #rand_roll_out[int(params[4])-1]
     else:
-        num = int(params[0])+int(params[1])+int(params[2]) - 2
+        num = int(params[0])+int(params[1])+int(params[2]) - 16
+        #num = int(params[1])
         not_rand_rollout.append([num, elo])
 
-for hypar in range(10):
+"""for hypar in range(10):
     if (len(rand_rollout[hypar]) == 0):
         continue
     rand_rollout[hypar].sort()
@@ -62,17 +64,54 @@ for hypar in range(10):
     x = [rand_rollout[hypar][i][0] for i in range(len(rand_rollout[hypar]))]
     y = [rand_rollout[hypar][i][1] for i in range(len(rand_rollout[hypar]))]
 
-    plt.plot(x, y, label=str(hypar+1))
+    plt.plot(x, y, label=str(hypar+1))"""
 
-#x = [not_rand_rollout[i][0] for i in range(len(not_rand_rollout))]
-#y = [not_rand_rollout[i][1] for i in range(len(not_rand_rollout))]
+rand_rollout.sort()
+not_rand_rollout.sort()
 
-#plt.plot(x, y, label="Not random rollout")
+new_nrr = []
+new_rr = []
+
+for i in range(len(not_rand_rollout)):
+    if (i%3 == 0):
+        if (i > 0):
+            new_nrr[-1][1] /= 3
+            new_rr[-1][1] /= 3
+        new_nrr.append(not_rand_rollout[i])
+        new_rr.append(rand_rollout[i])
+    else:
+        new_nrr[-1][1] += not_rand_rollout[i][1]
+        new_rr[-1][1] += rand_rollout[i][1]
+
+new_nrr[-1][1] /= 3
+new_rr[-1][1] /= 3
+not_rand_rollout = new_nrr
+rand_rollout = new_rr
+
+f = open("nrr_data.txt", "w")
+for i in not_rand_rollout:
+    f.write(str(i[0])+": "+str(i[1])+"\n")
+f.close()
+f = open("rr_data.txt", "w")
+for i in rand_rollout:
+    f.write(str(i[0])+": "+str(i[1])+"\n")
+f.close()
+"""
+x = [not_rand_rollout[i][0] for i in range(len(not_rand_rollout))]
+y = [not_rand_rollout[i][1] for i in range(len(not_rand_rollout))]
+
+plt.plot(x, y, label="Not random rollout")
+
+x = [rand_rollout[i][0] for i in range(len(rand_rollout))]
+y = [rand_rollout[i][1] for i in range(len(rand_rollout))]
+
+plt.plot(x, y, label="Random rollout")
 
 plt.legend(ncol=4)
 
-plt.xlabel("Number of iterations")
-plt.ylabel("Ranking")
+plt.xlabel("Num of Simulations")
+plt.ylabel("ELO Ranking")
 
 # save as vector image
 plt.savefig(dir+"/RANKING.svg", format="svg")
+"""

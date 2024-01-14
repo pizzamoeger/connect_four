@@ -154,6 +154,7 @@ void Network::backprop(float* in, float* out) {
     set_delta<<<OUTPUT_NEURONS,1>>> (layers[L-1]->delta, &activations[layers[L-1]->data.elems], out, &dev_params->cost);
 
     for (int l = L - 1; l >= 1; l--) {
+        //std::cout << "Layer" << l << "\n";
         layers[l]->backprop(activations, derivatives_z);
     }
 }
@@ -217,6 +218,7 @@ void Network::load(std::string filename, hyperparams params, layer_data* &layers
     }
 
     // free memory
+    file.close();
     for (int l = 1; l < L; l++) {
         delete[] biases[l];
         delete[] biases_vel[l];

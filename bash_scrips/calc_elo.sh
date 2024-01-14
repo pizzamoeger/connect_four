@@ -1,61 +1,10 @@
 #!/bin/bash
 
-# text input via cin
-sed -i -e '/\/\/ FIND-TAG-TEXT-INPUT-START/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    /* SDL_Event event;
-EOF
-sed -i -e '/\/\/ FIND-TAG-TEXT-INPUT-STOP/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    */ std::string text; std::cin >> text;
-EOF
-# menu selection hardcoded
-sed -i -e '/\/\/ FIND-TAG-MENU-SELECTION/{n; r /dev/stdin' -e 'N;N;N;d;}' game.cpp <<EOF
-    selected = {1, 1};
-    playerfile_1 = get_text();
-    playerfile_2 = get_text();
-    return mode();
-EOF
-# end screen
-sed -i -e '/\/\/ FIND-TAG-END/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    return 0;
-EOF
-# play two games
-sed -i -e '/\/\/ FIND-TAG-COUNTER/{n; r /dev/stdin' -e 'd;}' main.cpp <<EOF
-    while (true && counter < 2) {
-EOF
-# render screen
-sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-1/{n; r /dev/stdin' -e 'N;N;N;d;}' game.cpp <<EOF
-        /*SDL_RenderClear(renderer);
-        render_board();
-        set_col(renderer, WHITE);
-        SDL_RenderPresent(renderer);*/
-EOF
-sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-2/{n; r /dev/stdin' -e 'N;N;d;}' game.cpp <<EOF
-        /*SDL_RenderClear(renderer);
-        render_board();
-        SDL_RenderPresent(renderer);*/
-EOF
-# disable animation for selecting col
-sed -i -e '/\/\/ FIND-TAG-PICK-COL/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-        board.selected_col = col;
-EOF
-# disable animation for falling
-sed -i -e '/\/\/ FIND-TAG-FALLING/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-        // falling();
-EOF
-# set dimensions of screen to 0
-sed -i -e '/\/\/ FIND-TAG-DIMENSIONS/{n; r /dev/stdin' -e 'N;d;}' game.h <<EOF
-const int SCREEN_WIDTH = 0;
-const int SCREEN_HEIGHT = 0;
-EOF
-
-# compile the game
-make
-
 # the new bot
 # new_file=$1
 
 # get a list of all files in the directories
-directories=("MCTS_plot/games2")
+directories=("data/MCTS_plot/games")
 #  "RANDOM" "ALMOST_RANDOM" "DQL"
 
 files=()
@@ -89,11 +38,21 @@ do
       fi
 
       echo "Playing ${new_file} against ${suffled_files[j]}"
+      prefix="data/"
+      new_file_new=${new_file#$prefix}
+      shuf_file_new=${suffled_files[j]#$prefix}
+
+      #echo "${new_file_new} and ${shuf_file_new}"
 
       # run connect_four, giving file[0] and file[j] as input
-      ./connect_four  <<EOF
-${new_file}
-${files[j]}
+      ./fast1  <<EOF
+${new_file_new}
+${shuf_file_new}
+EOF
+
+      ./fast1  <<EOF
+${shuf_file_new}
+${new_file_new}
 EOF
 
       # ./bash_scrips/ranking.sh
@@ -101,44 +60,3 @@ EOF
 
     done
 done
-
-# set back to normal
-sed -i -e '/\/\/ FIND-TAG-TEXT-INPUT-START/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    SDL_Event event;
-EOF
-sed -i -e '/\/\/ FIND-TAG-TEXT-INPUT-STOP/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    // std::string text; cin >> text;
-EOF
-sed -i -e '/\/\/ FIND-TAG-MENU-SELECTION/{n; r /dev/stdin' -e 'N;N;N;d;}' game.cpp <<EOF
-    /* selected = {1, 1};
-    playerfile_1 = get_text();
-    playerfile_2 = get_text();
-    return mode();*/
-EOF
-sed -i -e '/\/\/ FIND-TAG-END/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    return CONTINUE;
-EOF
-sed -i -e '/\/\/ FIND-TAG-COUNTER/{n; r /dev/stdin' -e 'd;}' main.cpp <<EOF
-    while (true) {
-EOF
-sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-1/{n; r /dev/stdin' -e 'N;N;N;d;}' game.cpp <<EOF
-    SDL_RenderClear(renderer);
-    render_board();
-    set_col(renderer, WHITE);
-    SDL_RenderPresent(renderer);
-EOF
-sed -i -e '/\/\/ FIND-TAG-RENDER-SCREEN-2/{n; r /dev/stdin' -e 'N;N;d;}' game.cpp <<EOF
-            SDL_RenderClear(renderer);
-            render_board();
-            SDL_RenderPresent(renderer);
-EOF
-sed -i -e '/\/\/ FIND-TAG-PICK-COL/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-    // board.selected_col = col;
-EOF
-sed -i -e '/\/\/ FIND-TAG-FALLING/{n; r /dev/stdin' -e 'd;}' game.cpp <<EOF
-        falling();
-EOF
-sed -i -e '/\/\/ FIND-TAG-DIMENSIONS/{n; r /dev/stdin' -e 'N;d;}' game.h <<EOF
-const int SCREEN_WIDTH = 1000;
-const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
-EOF

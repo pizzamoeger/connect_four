@@ -34,7 +34,7 @@ bool connect_four_board::win() {
     // length of continuous pattern of correct tile in dist xstp ystp
     auto check = [&](int xstp, int ystp) {
         int col = placed_col, row = placed_row;
-        while (0 <= col && col < 7 && 0 <= row && row < 6 && board[row][col] == turn) {
+        while (0 <= col && col < INPUT_NEURONS_W && 0 <= row && row < INPUT_NEURONS_H && board[row][col] == turn) {
             col += xstp;
             row += ystp;
         }
@@ -52,7 +52,7 @@ bool connect_four_board::win() {
 }
 
 int connect_four_board::get_row() { // return -1 if invalid
-    int row = 5;
+    int row = INPUT_NEURONS_H-1;
     while (board[row][selected_col] != 0) {
         row--;
         if (row < 0) break;
@@ -65,19 +65,57 @@ void connect_four_board::play() {
     // play move
     if (selected_row >= 0) {
         board[selected_row][selected_col] = turn;
-        game_state = 7*game_state+selected_col+1;
+        game_state = INPUT_NEURONS_W*game_state+selected_col+1;
         turns++;
         turn = -turn;
-        selected_row = 5;
+        selected_row = INPUT_NEURONS_H-1;
     }
 }
 
 connect_four_board::connect_four_board() {
     // init board
-    for (int i = 0; i < 6; i++) for (int j = 0; j < 7; j++) board[i][j] = 0;
+    for (int i = 0; i < INPUT_NEURONS_H; i++) for (int j = 0; j < INPUT_NEURONS_W; j++) board[i][j] = 0;
     game_state = 0;
     turn = 1;
     turns = 0;
     selected_row = 5;
     selected_col = 0;
+}
+
+std::ostream& operator<<(std::ostream& os, const connect_four_board& board) {
+    for (int i = 0; i < INPUT_NEURONS_H; i++) {
+        for (int j = 0; j < INPUT_NEURONS_W; j++) {
+            if (board.board[i][j] == -1) os << "x";
+            else if (board.board[i][j] == 1) os << "o";
+            else os << "_";
+            os << " ";
+        }
+        os << "\n";
+    }
+    return os;
+}
+
+std::istream& operator>>(std::istream& in, int128& num) {
+    int128 cur = 0;
+    int neg = 1;
+    char c;
+
+    while (in >>  std::noskipws >> c) {
+        if (c == ' ' || c == ':') {
+            num = cur*neg;
+            return in;
+        }
+        if (c == '-') {
+            neg = -1;
+            continue;
+        }
+        cur *= 10;
+        cur += c-'0';
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, const int128& num) {
+    if (num < 0) return os << "-" << -num;
+    if (num < 10) return os << (char)(num + '0');
+    return os << num / 10 << (char)(num % 10 + '0');
 }

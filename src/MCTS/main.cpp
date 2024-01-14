@@ -7,13 +7,13 @@ int main(int argc, char* argv[]) {
     if (argc > 1) { // train mcts
         // check if there are 4 arguments
         if (argc != 5) {
-            std::cerr << "usage: ./connect_four <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+            std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
             return 0;
         }
 
         // check if first argument is 0 or 1
         if (argv[1][0] != '0' && argv[1][0] != '1') {
-            std::cerr << "usage: ./connect_four <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+            std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
             return 0;
         }
 
@@ -21,13 +21,13 @@ int main(int argc, char* argv[]) {
         for (int i = 2; i < 5; i++) {
             for (char c : std::string(argv[i])) {
                 if (c < '0' || c > '9') {
-                    std::cerr << "usage: ./connect_four <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+                    std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
                     return 0;
                 }
             }
         }
 
-        std::cerr << "training mcts...\n";
+        std::cerr << "training MCTS...\n";
         MCTS mcts;
 
         mcts.random_roll_out = atoi(argv[1]);
@@ -38,20 +38,20 @@ int main(int argc, char* argv[]) {
         mcts.training = true;
         mcts.train(num_games);
 
-        std::string filename = "data/MCTS/";
+        std::string filename = "data/MCTS_plot/games/";
         if (mcts.random_roll_out) filename += "r_";
 
         filename += std::to_string(mcts.num_roll_outs);
         filename += "_"+std::to_string(mcts.iterations);
         filename += "_"+std::to_string(num_games);
         // FIND-TAG-FILENAME
-        filename += ".txt";
+        filename += ".txt2";
 
         mcts.save(filename);
-        std::cerr << "saved at " << filename << "\n";
+        std::cerr << "saved MCTS at " << filename << "\n";
         return 0;
     }
 
-    std::cerr << "usage: ./connect_four <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+    std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
     return 0;
 }

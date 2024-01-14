@@ -43,21 +43,21 @@ int main() {
         // execute action
         board.selected_col = action;
         board.play();
-        //if (action == 2) break;
 
-        /*for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 7; j++) {
-                if (board.board[i][j] == -1) std::cerr << "x";
-                else if (board.board[i][j] == 1) std::cerr << "o";
-                else std::cerr << "_";
-                std::cerr << " ";
-            }
-            std::cerr << "\n";
-        }
-        std::cerr << "\n\n\n";*/
+        //board.print();
+        //std::cerr << "\n\n\n";
 
         if (board.win() || board.turns == 42) break;
     }
+
+    std::pair<float, float> new_elos = update_elo(player_1->elo, player_2->elo, board.turn);
+    if (file1 != file2) {
+        player_1->elo = new_elos.first;
+        player_2->elo = new_elos.second;
+    }
+
+    player_1->save("data/"+file1);
+    player_2->save("data/"+file2);
 
     std::cout << (board.turn==DQL_PLAYER?-1:1) << "\n";
 }
