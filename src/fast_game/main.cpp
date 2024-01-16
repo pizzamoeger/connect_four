@@ -13,7 +13,7 @@ int main() {
 
         if (playerfile[0] == 'R') player = std::make_unique<Random>();
         else if (playerfile[0] == 'M') player = std::make_unique<MCTS>();
-        else if (playerfile[0] == 'D') player = std::make_unique<DQL>();
+        else if (playerfile[0] == 'D') player = std::make_unique<DQN>();
         else if (playerfile[0] == 'A') player = std::make_unique<Almost_random>();
         else if (playerfile[0] == 'H') player = std::make_unique<Human>();
         else {
@@ -33,7 +33,7 @@ int main() {
     std::unique_ptr<Player> player_2;
     player_2 = std::move(init_player(file2));
 
-    int DQL_PLAYER; std::cin >> DQL_PLAYER;
+    //int DQN_PLAYER; std::cin >> DQN_PLAYER;
 
     while (true) {
         int action;
@@ -59,5 +59,5 @@ int main() {
     player_1->save("data/"+file1);
     player_2->save("data/"+file2);
 
-    std::cout << (board.turn==DQL_PLAYER?-1:1) << "\n";
+    //std::cout << (board.turn==DQN_PLAYER?-1:1) << "\n";
 }

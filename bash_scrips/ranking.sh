@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("data/MCTS_plot/games")
+directories=("data/DQN/games")
 
 # Initialize an empty array to store last lines
 last_lines=()

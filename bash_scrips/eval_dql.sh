@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DQL="DQL/test.txt"
+DQL="$8"
 MCTS="MCTS/20_20_2.txt"
 MCTS="RANDOM"
 

@@ -6,9 +6,7 @@ int main(int argc, char** argv) {
     // randomness
     srand(time(NULL));
 
-    DQL player;
-
-    std::cerr << std::setprecision(30);
+    DQN player;
 
     // design layers
     layer_data input;
@@ -25,12 +23,12 @@ int main(int argc, char** argv) {
     layer_data fully_connected1;
     fully_connected1.type = LAYER_NUM_FULLY_CONNECTED;
     fully_connected1.activation_function = LEAKY_RELU;
-    fully_connected1.n_out = {3, 1, 1};
+    fully_connected1.n_out = {50, 1, 1};
 
     layer_data fully_connected2;
     fully_connected2.type = LAYER_NUM_FULLY_CONNECTED;
     fully_connected2.activation_function = LEAKY_RELU;
-    fully_connected2.n_out = {5, 1, 1};
+    fully_connected2.n_out = {30, 1, 1};
 
     layer_data outt;
     outt.type = LAYER_NUM_FULLY_CONNECTED;
@@ -59,20 +57,6 @@ int main(int argc, char** argv) {
         params.L2_regularization_term = atof(argv[5]);
         params.momentum_coefficient = atof(argv[6]);
     }
-    params.test_data_size = 0;
-    params.training_data_size = 1;
-    params.mini_batch_size = 1;
-    //params.fully_connected_weights_learning_rate = 0.01;
-    //params.fully_connected_biases_learning_rate = 0.01;
-
-    // initialize params learning rate reduction
-    //params.fcBRed = params.fully_connected_biases_learning_rate*99/10000;
-    //params.fcWRed = params.fully_connected_weights_learning_rate*99/10000;
-    //params.convBRed = params.convolutional_biases_learning_rate*99/10000;
-    //params.convWRed = params.convolutional_weights_learning_rate*99/10000;
-
-    // FIND-TAG-EPOCHS
-    /*std::cerr << "epochs: "; std::cin >> */params.epochs = 1;
 
     // init networks
     player.main.init(layers, L, params);
@@ -83,26 +67,37 @@ int main(int argc, char** argv) {
         cudaMemcpy(player.target.layers[l]->dev_biases, player.main.layers[l]->dev_biases, player.main.layers[l]->biases_size * sizeof(float), cudaMemcpyDeviceToDevice);
     }
 
-    // init DQL stuff
-    player.c = 15;
+    // init DQN stuff
+    player.batch_size = 1;
+    int train_games = 1024;
+    player.c = 16;
+
     player.replay_buffer_size = 3000000;
+    player.discount_factor = 0.95;
+    player.epsilon_red = 0.99;
+    player.epsilon = 1.0;
     player.replay_buffer_counter = 0;
     player.replay_buffer.resize(player.replay_buffer_size);
-    player.batch_size = 1;
-    player.epsilon = 1.0;
-    player.discount_factor = 0.95;
 
     // train
-    player.train(5);
+    player.train(train_games);
 
     // save network
     // FIND-TAG-STORING
     //std::cerr << "Where should the network be stored? "; std::string filename; std::cin >> filename;
-    std::string filename = "test.txt";
-    player.save("data/DQL/"+filename);
+    std::string filename = "data/DQN/batch_size/fc_";
+    filename += std::to_string(player.batch_size);
+    filename += "_" + std::to_string(player.c);
+    filename += "_" + std::to_string(train_games);
+    filename += ".txt1";
+
+    player.save(filename);
+    std::ofstream file;
+    std::cerr << "saved DQN at " << filename << "\n";
 
     // free up memory
     player.main.clear();
+    player.target.clear();
     delete[] layers;
 
     cudaDeviceReset();

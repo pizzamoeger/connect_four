@@ -71,18 +71,18 @@ struct MCTS : public Player {
     void train(int num_games);
 };
 
-struct DQL : public Player {
+struct DQN : public Player {
     Network main;
     Network target;
     hyperparams params;
 
-    int c;
-    float epsilon;
-    int replay_buffer_size;
-    int replay_buffer_counter;
-    int batch_size;
-
-    float discount_factor;
+    int c = 15;
+    float epsilon = 0;
+    float epsilon_red = 0.99;
+    int replay_buffer_size = 10;
+    int replay_buffer_counter = 0;
+    int batch_size = 1;
+    float discount_factor = 0.95;
 
     std::vector<Experience> replay_buffer;
 
@@ -96,8 +96,8 @@ struct DQL : public Player {
     float* feedforward(connect_four_board board, Network& net);
 
     int get_col(connect_four_board board);
-    void load(std::string filename = "DQL/bot.txt");
-    void save(std::string filename = "DQL/bot.txt");
+    void load(std::string filename = "DQN/bot.txt");
+    void save(std::string filename = "DQN/bot.txt");
 
     void train(int num_games);
 };

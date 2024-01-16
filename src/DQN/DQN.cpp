@@ -1,13 +1,9 @@
 #include "../game.h"
 
-void DQL::load(std::string filename) {
+void DQN::load(std::string filename) {
     params = get_params();
     params.training_data_size = batch_size;
     params.test_data_size = 0;
-    replay_buffer_size = 10;
-    replay_buffer.resize(replay_buffer_size);
-    epsilon = 0;
-    discount_factor = 0.8;
 
     layer_data* layers;
     main.load(filename, params, layers);
@@ -21,14 +17,16 @@ void DQL::load(std::string filename) {
 
     // get ELO from last line
     std::ifstream file(filename);
-    while (file >> elo);
+    std::string line;
+    while (getline(file, line));
+    elo = atoi(line.c_str());
     file.close();
 
     delete[] layers;
     return;
 }
 
-int DQL::epsilon_greedy(float *out, connect_four_board board) {
+int DQN::epsilon_greedy(float *out, connect_four_board board) {
     float r = (float)(rand()) / (float)(RAND_MAX);
 
     if (r < epsilon) {
@@ -55,18 +53,19 @@ int DQL::epsilon_greedy(float *out, connect_four_board board) {
     }
 }
 
-void DQL::save(std::string filename) {
+void DQN::save(std::string filename) {
     main.save(filename);
+    std::cerr << filename << "\n";
 
     // save elo
     std::ofstream file;
-    file.open(filename, std::ios_base::app); // append instead of overwrite
+    file.open(filename, std::ios_base::app);
     file << elo;
     file.close();
     return;
 }
 
-float* DQL::get_input(connect_four_board board) {
+float* DQN::get_input(connect_four_board board) {
     // copy board to activations
     float* in = new float[INPUT_NEURONS];
     for (int row = 0; row < INPUT_NEURONS_H; row++) {
@@ -74,8 +73,6 @@ float* DQL::get_input(connect_four_board board) {
             in[row*INPUT_NEURONS_W + col] = board.board[row][col];
         }
     }
-
-    std::cout << board;
 
     // copy to device
     float* dev_in;
@@ -86,7 +83,7 @@ float* DQL::get_input(connect_four_board board) {
     return dev_in;
 }
 
-float* DQL::get_output(Experience exp) {
+float* DQN::get_output(Experience exp) {
     float* main_out = feedforward(exp.state, main);
     float* tar_out = feedforward(exp.new_state, target);
 
@@ -104,7 +101,7 @@ float* DQL::get_output(Experience exp) {
     return dev_out;
 }
 
-float* DQL::feedforward(connect_four_board board, Network& net) {
+float* DQN::feedforward(connect_four_board board, Network& net) {
     // get input
     float* in = get_input(board);
 
@@ -119,7 +116,7 @@ float* DQL::feedforward(connect_four_board board, Network& net) {
     return out;
 }
 
-std::vector<Experience> DQL::get_random_batch() {
+std::vector<Experience> DQN::get_random_batch() {
     // get the indices of the possible experiences and shuffle them
     std::vector<int> indices (std::min(replay_buffer_size,replay_buffer_counter));
     std::iota(indices.begin(), indices.end(), 0);
@@ -134,7 +131,7 @@ std::vector<Experience> DQL::get_random_batch() {
     return batch;
 }
 
-Experience DQL::get_experience(connect_four_board board, int action) {
+Experience DQN::get_experience(connect_four_board board, int action) {
     // get new state
     connect_four_board new_board = board;
     new_board.selected_col = action;
@@ -148,25 +145,13 @@ Experience DQL::get_experience(connect_four_board board, int action) {
 }
 
 
-void DQL::store_in_replay_buffer(Experience exp) {
+void DQN::store_in_replay_buffer(Experience exp) {
     int index = replay_buffer_counter % replay_buffer_size;
     replay_buffer[index] = exp;
     replay_buffer_counter++;
 }
 
-int DQL::get_col(connect_four_board board) {
-    for (int l = 0; l < main.L; l++) {
-        float* weights = new float [main.layers[l]->weights_size];
-        cudaMemcpy(weights, main.layers[l]->dev_weights, main.layers[l]->weights_size*sizeof(float), cudaMemcpyDeviceToHost);
-
-        std::cerr << "layer: " << l << ": ";
-        std::cerr << "dev weights: " << main.layers[l]->dev_weights << "\n";
-        for (int w = 0; w < main.layers[l]->weights_size; w++) std::cerr << weights[w] << " ";
-        std::cerr << "\n";
-
-        delete[] weights;
-    }
-
+int DQN::get_col(connect_four_board board) {
     float* out = feedforward(board, main);
 
     // select best action using epsilon greedy
@@ -176,7 +161,7 @@ int DQL::get_col(connect_four_board board) {
     return action;
 }
 
-void DQL::copy_main_to_target() {
+void DQN::copy_main_to_target() {
     for (int l = 0; l < main.L; l++) {
         cudaMemcpy(target.layers[l]->dev_weights, main.layers[l]->dev_weights,
                    main.layers[l]->weights_size * sizeof(float), cudaMemcpyDeviceToDevice);
@@ -185,9 +170,11 @@ void DQL::copy_main_to_target() {
     }
 }
 
-void DQL::train(int num_games) {
+void DQN::train(int num_games) {
     for (int game = 0; game < num_games; game++) {
        connect_four_board board;
+
+       if (game%20 == 0) std::cerr << "Game " << game << "\n";
 
        // play game
        while (true) {
@@ -218,7 +205,19 @@ void DQL::train(int num_games) {
 
            if (board.win() || board.turns == INPUT_NEURONS) break;
        }
-       epsilon = 0.9999*epsilon;
+       epsilon *= epsilon_red;
        epsilon = std::max(epsilon, 0.1f);
+
+        /*for (int l = 0; l < main.L; l++) {
+            float* weights = new float [main.layers[l]->weights_size];
+            cudaMemcpy(weights, main.layers[l]->dev_weights, main.layers[l]->weights_size*sizeof(float), cudaMemcpyDeviceToHost);
+
+            std::cerr << "layer: " << l << ": ";
+            std::cerr << "dev weights: " << main.layers[l]->dev_weights << "\n";
+            for (int w = 0; w < main.layers[l]->weights_size; w++) std::cerr << weights[w] << " ";
+            std::cerr << "\n";
+
+            delete[] weights;
+        }*/
    }
 }

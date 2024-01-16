@@ -4,7 +4,7 @@
 # new_file=$1
 
 # get a list of all files in the directories
-directories=("data/MCTS_plot/games")
+directories=("data/DQN/games")
 #  "RANDOM" "ALMOST_RANDOM" "DQL"
 
 files=()
@@ -45,12 +45,12 @@ do
       #echo "${new_file_new} and ${shuf_file_new}"
 
       # run connect_four, giving file[0] and file[j] as input
-      ./fast1  <<EOF
+      ./fast  <<EOF
 ${new_file_new}
 ${shuf_file_new}
 EOF
 
-      ./fast1  <<EOF
+      ./fast  <<EOF
 ${shuf_file_new}
 ${new_file_new}
 EOF

@@ -13,10 +13,11 @@ names = ["fully connected weight learning rate", "fully connected bias learning 
 s = 35
 st = [10, 10, 3, 3]
 
-testfile = 'train_DQL_fc'
+testfile = 'train_DQL_b1024'
+name = 'DQL/fc_1024_15_100.txt'
 
 def evaluate():
-    process = subprocess.Popen(['./bash_scrips/eval_dql.sh'] + [str(base**a) for a in params] + [testfile], stdout=subprocess.PIPE)
+    process = subprocess.Popen(['./bash_scrips/eval_dql.sh'] + [str(base**a) for a in params] + [testfile] + [name], stdout=subprocess.PIPE)
 
     output, _ = process.communicate()
 
@@ -71,13 +72,8 @@ def searchopt(i):
     params[i] = (l + r) / 2
     print("Done looking for best {}, found {} to be best".format(names[i], base**params[i]), flush=True)
 
-#searchopt(0)
-#searchopt(1)
-params[0] = -27.66
-params[1] = -10.46
-testfile = 'train_DQL_conv'
-searchopt(2)
-searchopt(3)
+searchopt(0)
+searchopt(1)
 
 print("============================================", flush=True)
 print("I am done: the best parameters are: {}".format([base**el for el in params]), flush=True)
