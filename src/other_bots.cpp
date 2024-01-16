@@ -1,6 +1,6 @@
 #include "game.h"
 
-int Random::get_col(connect_four_board board) {
+int Random::get_col(connect_four_board board, bool eval) {
     std::vector<int> moves (INPUT_NEURONS_W);
     std::iota(moves.begin(), moves.end(), 0);
     std::random_shuffle(moves.begin(), moves.end());
@@ -46,7 +46,7 @@ std::vector<int> Almost_random::can_win(int player, connect_four_board board) {
     return winners;
 }
 
-int Almost_random::get_col(connect_four_board board) {
+int Almost_random::get_col(connect_four_board board, bool eval) {
     if (!can_win(board.turn, board).empty()) // can win in one move
         board.selected_col = can_win(board.turn, board)[0];
     else if (!can_win(-board.turn, board).empty()) // would lose if not playing this move

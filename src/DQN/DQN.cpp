@@ -26,7 +26,7 @@ void DQN::load(std::string filename) {
     return;
 }
 
-int DQN::epsilon_greedy(float *out, connect_four_board board) {
+int DQN::epsilon_greedy(float *out, connect_four_board board, bool eval) {
     float r = (float)(rand()) / (float)(RAND_MAX);
 
     if (r < epsilon) {
@@ -41,8 +41,10 @@ int DQN::epsilon_greedy(float *out, connect_four_board board) {
         std::vector<int> max_indices;
         int max_index = -1;
         for (int neuron = 0; neuron < OUTPUT_NEURONS; neuron++) {
-            board.selected_col = neuron;
-            if (board.get_row() < 0) continue;
+            if (eval) {
+                board.selected_col = neuron;
+                if (board.get_row() < 0) continue;
+            }
             if (max_index == -1 || out[neuron] > out[max_index]) {
                 max_index = neuron;
                 max_indices = {max_index};
@@ -87,10 +89,19 @@ float* DQN::get_output(Experience exp) {
     float* main_out = feedforward(exp.state, main);
     float* tar_out = feedforward(exp.new_state, target);
 
-    float max_out = tar_out[0];
-    for (int neuron = 0; neuron < OUTPUT_NEURONS; neuron++) max_out = std::max(max_out, tar_out[neuron]);
+    float output_goal;
+    if (abs(exp.reward) == 1.0) {
+        // Either the game is won in this turn (reward = 1) or it is an illegal move (reward = -1)
+        output_goal = exp.reward;
+    } else {
+        float max_out = tar_out[0];
+        for (int neuron = 0; neuron < OUTPUT_NEURONS; neuron++) max_out = std::max(max_out, tar_out[neuron]);
+        // An action is either illegal, wins the game or does not give reward
+        assert(exp.reward == 0);
+        output_goal = exp.reward - discount_factor * max_out;
+    }
 
-    main_out[exp.action] = exp.reward - discount_factor*max_out;
+    main_out[exp.action] = output_goal;
 
     float* dev_out;
     cudaMalloc(&dev_out, OUTPUT_NEURONS*sizeof(float));
@@ -135,6 +146,9 @@ Experience DQN::get_experience(connect_four_board board, int action) {
     // get new state
     connect_four_board new_board = board;
     new_board.selected_col = action;
+    if (new_board.get_row() < 0) {
+        return {board, action, -1.0, board};
+    }
     new_board.play();
 
     // get reward in next state
@@ -151,11 +165,11 @@ void DQN::store_in_replay_buffer(Experience exp) {
     replay_buffer_counter++;
 }
 
-int DQN::get_col(connect_four_board board) {
+int DQN::get_col(connect_four_board board, bool eval) {
     float* out = feedforward(board, main);
 
     // select best action using epsilon greedy
-    int action = epsilon_greedy(out, board);
+    int action = epsilon_greedy(out, board, eval);
 
     delete[] out;
     return action;
@@ -178,7 +192,7 @@ void DQN::train(int num_games) {
 
        // play game
        while (true) {
-           int action = get_col(board);
+           int action = get_col(board, false);
            Experience exp = get_experience(board, action);
            store_in_replay_buffer(exp);
 

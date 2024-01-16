@@ -37,8 +37,8 @@ int main() {
 
     while (true) {
         int action;
-        if (board.turn%2 == 1) action = player_1->get_col(board);
-        else action = player_2->get_col(board);
+        if (board.turn%2 == 1) action = player_1->get_col(board, true);
+        else action = player_2->get_col(board, true);
 
         // execute action
         board.selected_col = action;

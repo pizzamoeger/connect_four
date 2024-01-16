@@ -33,7 +33,9 @@ struct Experience {
 struct Player {
     float elo = 1000.0;
 
-    virtual int get_col(connect_four_board board) = 0;
+    // Eval specifies whether the action should be selected to be optimal for evaluation or optimal
+    // for training. schlechte kommentar aber egal
+    virtual int get_col(connect_four_board board, bool eval) = 0;
     virtual void load(std::string filename) = 0;
     virtual void save(std::string filename) = 0;
     virtual void train(int num_games) {}
@@ -65,7 +67,7 @@ struct MCTS : public Player {
 
     int get_best_move(connect_four_board board);
 
-    int get_col(connect_four_board board);
+    int get_col(connect_four_board board, bool eval);
     void save(std::string filename = "MCTS/bot.txt");
     void load(std::string filename = "MCTS/bot.txt");
     void train(int num_games);
@@ -86,7 +88,7 @@ struct DQN : public Player {
 
     std::vector<Experience> replay_buffer;
 
-    int epsilon_greedy(float* out, connect_four_board board);
+    int epsilon_greedy(float* out, connect_four_board board, bool eval);
     float* get_input(connect_four_board board);
     float* get_output(Experience exp);
     std::vector<Experience> get_random_batch();
@@ -95,7 +97,7 @@ struct DQN : public Player {
     void copy_main_to_target();
     float* feedforward(connect_four_board board, Network& net);
 
-    int get_col(connect_four_board board);
+    int get_col(connect_four_board board, bool eval);
     void load(std::string filename = "DQN/bot.txt");
     void save(std::string filename = "DQN/bot.txt");
 
@@ -103,13 +105,13 @@ struct DQN : public Player {
 };
 
 struct Random : public Player {
-    int get_col(connect_four_board board);
+    int get_col(connect_four_board board, bool eval);
     void save(std::string filename = "data/RANDOM/bot.txt");
     void load(std::string filename = "data/RANDOM/bot.txt");
 };
 
 struct Almost_random : public Player {
-    int get_col(connect_four_board board);
+    int get_col(connect_four_board board, bool eval);
     void save(std::string filename = "data/ALMOST_RANDOM/bot.txt");
     void load(std::string filename = "data/ALMOST_RANDOM/bot.txt");
 
@@ -117,7 +119,7 @@ struct Almost_random : public Player {
 };
 
 struct Human : public Player {
-    int get_col(connect_four_board board) {return 0;}
+    int get_col(connect_four_board board, bool eval) {return 0;}
     void save(std::string filename = "HUMAN/test.txt");
     void load(std::string filename = "HUMAN/test.txt");
 };

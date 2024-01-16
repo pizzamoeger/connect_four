@@ -89,7 +89,7 @@ void MCTS::expand(connect_four_board &board) {
 int MCTS::roll_out(connect_four_board board, Player* player) {
 
     while (!board.win() && board.turns < INPUT_NEURONS) { // simulate until game ends
-        board.selected_col = player->get_col(board);
+        board.selected_col = player->get_col(board, false);
         board.play();
     }
 
@@ -197,7 +197,7 @@ void MCTS::train(int num_games) {
 
         // play game
         while (true) {
-            int col = get_col(board);
+            int col = get_col(board, false);
             board.selected_col = col;
             board.play();
 
@@ -206,7 +206,8 @@ void MCTS::train(int num_games) {
     }
 }
 
-int MCTS::get_col(connect_four_board board) {
+// TODO make it not give warning
+int MCTS::get_col(connect_four_board board, bool eval) {
     run(board);
     return get_best_move(board);
 }
