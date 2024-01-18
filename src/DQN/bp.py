@@ -17,7 +17,7 @@ testfile = 'train_DQL_b1024'
 name = 'DQL/fc_1024_15_100.txt'
 
 def evaluate():
-    process = subprocess.Popen(['./bash_scrips/eval_dql.sh'] + [str(base**a) for a in params] + [testfile] + [name], stdout=subprocess.PIPE)
+    process = subprocess.Popen(['./bash_scripts/eval_dqn.sh'] + [str(base**a) for a in params] + [testfile] + [name], stdout=subprocess.PIPE)
 
     output, _ = process.communicate()
 
