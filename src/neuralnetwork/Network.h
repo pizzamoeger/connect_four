@@ -4,24 +4,6 @@
 extern int* zero_pointer;
 extern float* f_zero_pointer;
 
-struct hyperparams {
-    float convolutional_weights_learning_rate;
-    float convolutional_biases_learning_rate;
-    float fully_connected_weights_learning_rate;
-    float fully_connected_biases_learning_rate;
-    float convWRed;
-    float convBRed;
-    float fcWRed;
-    float fcBRed;
-    float L2_regularization_term;
-    float momentum_coefficient;
-    int epochs;
-    int mini_batch_size;
-    int training_data_size;
-    int test_data_size;
-    int cost;
-};
-
 enum {
     LAYER_NUM_FULLY_CONNECTED,
     LAYER_NUM_CONVOLUTIONAL,
@@ -42,6 +24,28 @@ enum {
     MSE
 };
 
+struct hyperparams {
+    float convolutional_weights_learning_rate = 0.01;
+    float convolutional_biases_learning_rate = 0.01;
+    float fully_connected_weights_learning_rate = 0.01;
+    float fully_connected_biases_learning_rate = 0.01;
+
+    float convWRed = 0;
+    float convBRed = 0;
+    float fcWRed = 0;
+    float fcBRed = 0;
+
+    float L2_regularization_term = 0;
+    float momentum_coefficient = 0;
+
+    int epochs = 1;
+    int mini_batch_size = 1;
+    int training_data_size = 1;
+    int test_data_size = 0;
+
+    int cost = CROSSENTROPY;
+};
+
 #define INPUT_NEURONS_W 7
 #define INPUT_NEURONS_H 6
 #define OUTPUT_NEURONS INPUT_NEURONS_W
@@ -55,7 +59,6 @@ inline __device__ float activation_function(float x, int activation_func, float 
 inline __device__ float activation_function_prime(float x, int activation_func, float sum_of_exp);
 
 std::pair<std::vector<std::pair<float*,float*>>, int> load_data(std::string filename); // TODO : watch this https://www.youtube.com/watch?v=m7E9piHcfr4 to make this faster
-hyperparams get_params();
 void clear_data(std::vector<std::pair<float*,float*>> & data);
 
 struct network_data {

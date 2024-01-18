@@ -1,4 +1,4 @@
-dir="data/DQN/c/*"
+dir=$1*
 for file in $dir; do
     # if file is RANKING.*, skip
     if [[ $file == *"RANKING"* ]]; then

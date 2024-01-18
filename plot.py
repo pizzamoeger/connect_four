@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-dir = "data/DQN/c/"
+dir = "data/DQN/games/"
 
 f = open(dir+"RANKING.txt", "r")
 lines = f.readlines()
@@ -18,11 +18,11 @@ for i in range(len(lines)):
     params = params[0].split("_")
 
     if params[0] == "fc":
-        num = int(params[1])+int(params[2])+int(params[3]) - 16-1024
+        num = int(params[1])+int(params[2])+int(params[3]) - 8-8
         #num = int(params[1])
         rand_rollout.append([num, elo]) #rand_roll_out[int(params[4])-1]
     else:
-        num = int(params[0])+int(params[1])+int(params[2]) - 16-1024
+        num = int(params[0])+int(params[1])+int(params[2]) - 8-8
         #num = int(params[1])
         not_rand_rollout.append([num, elo])
 

@@ -8,8 +8,6 @@
 //Screen dimension constants
 const int TEXT_SIZE = 60;
 const int TEXT_DIST = 100;
-
-// FIND-TAG-DIMENSIONS
 const int SCREEN_WIDTH = 1000;
 const int SCREEN_HEIGHT = 700+TEXT_DIST+TEXT_SIZE+150+100;
 
@@ -97,7 +95,7 @@ struct Connect_four_screen : public Screen {
 struct End_screen : public Screen {
     int winner;
     int x, y;
-    // winner gets set to status
+
     End_screen(int status, int x, int y) : winner(status), x(x), y(y) {};
 
     bool init();

@@ -13,24 +13,25 @@ void MCTS::run(connect_four_board board) {
     connect_four_board old_board = board;
     for (int i = 0; i < iterations; i++) {
         board = old_board;
-        select(board); // select most promising leaf node from this state
+        select(board);
+
         if (board.win() || board.turns == INPUT_NEURONS) {
             int result = board.win()*num_roll_outs; // win every time
-            backup(board.game_state, result); // backup result
-            continue; // game ended (no need to expand)
+            backup(board.game_state, result);
+            continue;
         }
 
-        expand(board); // unexplored child of leaf node
+        expand(board);
         int result = 0;
 
         Player* player;
-        if (random_roll_out) player = new Random(); // random rollout
-        else player = new Almost_random(); // random rollout with some logic
+        if (random_roll_out) player = new Random();
+        else player = new Almost_random();
 
-        for (int j = 0; j < num_roll_outs; j++) { // simulate
-            int r_out = roll_out(board, player); // get result
-            if (r_out == board.turn) result++; // loss
-            else if (r_out == -board.turn) result--; // win
+        for (int j = 0; j < num_roll_outs; j++) {
+            int r_out = roll_out(board, player);
+            if (r_out == board.turn) result++;
+            else if (r_out == -board.turn) result--;
             // else tie
         }
 
@@ -126,17 +127,16 @@ int MCTS::get_best_move(connect_four_board board) {
 
         float val = 0; // find most promising child
         if (sims.find(7*board.game_state+i+1) != sims.end()) val = float(wins[7*board.game_state+i+1])/sims[7*board.game_state+i+1];
-        if ((val > best_val || best_cols.empty()) && board.board[0][i] == 0) { // new best found
+        if ((val > best_val || best_cols.empty()) && board.board[0][i] == 0) {
             best_val = val;
             best_cols.clear();
             best_cols.push_back(i);
         } else if (val == best_val && board.board[0][i] == 0) { // same best found
             best_cols.push_back(i);
         }
-
     }
 
-    int best_col = best_cols[rand()%best_cols.size()]; // select one at random
+    int best_col = best_cols[rand()%best_cols.size()];
     return best_col;
 }
 

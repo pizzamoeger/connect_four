@@ -47,7 +47,7 @@ inline __device__ float cross_entropy_prime(float out_net, float out_cor) {
     return (out_net-out_cor);
 }
 
-inline __device__ float MSE_prime(float out_net, float out_cor) { // TODO this is falsch
+inline __device__ float MSE_prime(float out_net, float out_cor) { // TODO this is incorrect
     return (out_net-out_cor)*(out_net-out_cor);
 }
 
@@ -89,21 +89,6 @@ inline __device__ float cost_function_prime(float out_net, float out_cor, int co
     if (cost_function == CROSSENTROPY) return cross_entropy_prime(out_net, out_cor);
     else if (cost_function == MSE) return MSE_prime(out_net, out_cor);
     else return 0;
-}
-
-int get_convolutional_weights_index(int previous_map, int map, int y, int x, layer_data &data) {
-    return
-            previous_map * (data.n_out.feature_maps * data.receptive_field_length * data.receptive_field_length)
-            + map * (data.receptive_field_length * data.receptive_field_length)
-            + y * (data.receptive_field_length)
-            + x;
-}
-
-int get_data_index(int map, int y, int x, layer_data &data) {
-    return
-            map * (data.n_out.x * data.n_out.y)
-            + y * (data.n_out.x)
-            + x;
 }
 
 inline __device__ int get_fully_connected_weight_index_dev (int neuron, int previous_neuron, int data_n_in) {
@@ -173,27 +158,6 @@ std::pair<std::vector<std::pair<float*,float*>>, int> load_data(std::string file
     return {data, dataPoints};
 }
 
-hyperparams get_params() {
-    hyperparams params;
-
-    params.mini_batch_size = 1;
-    params.epochs = 1;
-    params.test_data_size = 0;
-    params.training_data_size = 1;
-
-    params.fully_connected_weights_learning_rate = /*1.2*0.017599067515299563*/0.01;
-    params.fully_connected_biases_learning_rate = /*1.2*0.041000786959874205*/ 0.01;
-    params.convolutional_weights_learning_rate = /*1.2*1.0075*/ 0.12;
-    params.convolutional_biases_learning_rate = /*1.2*0.011*/ 0.12;
-
-    params.L2_regularization_term = 0;
-    params.momentum_coefficient = 0;
-
-    params.cost = CROSSENTROPY;
-
-    return params;
-}
-
 void clear_data(std::vector<std::pair<float*,float*>> & data) {
     for (int data_point = 0; data_point < (int)data.size(); data_point++) {
         cudaFree(data[data_point].first);
@@ -210,7 +174,6 @@ __global__ void backprop_update_w_b_fc (float* dev_weights_upt, float* dev_delta
     int neuron = blockIdx.x;
     int previous_neuron = threadIdx.x;
     dev_weights_upt[get_fully_connected_weight_index_dev(neuron, previous_neuron, *data_n_in_x)] += dev_delta[neuron] * dev_activations[previous_neuron];
-    //printf("dev delta: %f, dev a: %f, dev_w_u: %f, neuron: %d, prev_n: %d\n", dev_delta[neuron], dev_activations[previous_neuron], dev_weights_upt[get_fully_connected_weight_index_dev(neuron, previous_neuron, *data_n_in_x)], neuron, previous_neuron);
 
     if (previous_neuron == 0) dev_biases_updt[neuron] += dev_delta[neuron];
 }
@@ -230,9 +193,7 @@ __global__ void update (float* biases_vel, float* weights_vel, float* weights_up
                                  (params->fully_connected_biases_learning_rate / params->mini_batch_size) *
                                  biases_updt[neuron];
         }
-        float vorho = biases[neuron];
         biases[neuron] += biases_vel[neuron];
-        //printf("Bias at index %d: %f (vorho)  %f (noho), updt: %f\n", neuron,vorho, biases[neuron] , biases_updt[neuron] );
         biases_updt[neuron] = 0;
     }
 
@@ -250,9 +211,7 @@ __global__ void update (float* biases_vel, float* weights_vel, float* weights_up
         weights_vel[weight] = params->momentum_coefficient * weights_vel[weight] -
                 (params->fully_connected_weights_learning_rate / params->mini_batch_size) *
                 weights_updt[weight];
-        float voho = weights[weight];
         weights[weight] = (1 - params->fully_connected_weights_learning_rate * params->L2_regularization_term) * weights[weight] + weights_vel[weight];
-        //printf("Weight at index %d: %f (vorho)  %f (noho), updt: %f\n", weight,voho, weights[weight], weights_updt[weight]);
     }
 
     weights_updt[weight] = 0;
@@ -350,8 +309,6 @@ __global__ void dev_feedforward(float* weights, float* new_a, network_data* n_in
         sum[0] += biases[neuron_b];
         new_dz[neuron] = activation_function_prime(sum[0], *activation_func, 0);
         new_a[neuron] = activation_function(sum[0], *activation_func, 0);
-
-        //printf("Activation: %f, z: %f, neuron: %d\n", new_a[neuron], sum[0], neuron);
     }
 }
 
@@ -383,7 +340,6 @@ __global__ void dev_backprop(float* delta, float* dz, float* new_delta, float* w
 
     if (tid == 0) {
         new_delta[previous_neuron] = sum[tid]*dz[previous_neuron];
-        //printf("new delta of %d is %f, dz is %f\n", previous_neuron, new_delta[previous_neuron], dz[previous_neuron]);
     }
 }
 

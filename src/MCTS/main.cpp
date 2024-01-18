@@ -44,8 +44,7 @@ int main(int argc, char* argv[]) {
         filename += std::to_string(mcts.num_roll_outs);
         filename += "_"+std::to_string(mcts.iterations);
         filename += "_"+std::to_string(num_games);
-        // FIND-TAG-FILENAME
-        filename += ".txt2";
+        filename += ".txt";
 
         mcts.save(filename);
         std::cerr << "saved MCTS at " << filename << "\n";

@@ -78,12 +78,12 @@ struct DQN : public Player {
     Network target;
     hyperparams params;
 
-    int c = 15;
+    int c = 8;
+    int batch_size = 8;
     float epsilon = 0;
     float epsilon_red = 0.99;
-    int replay_buffer_size = 10;
+    int replay_buffer_size = 16;
     int replay_buffer_counter = 0;
-    int batch_size = 1;
     float discount_factor = 0.95;
 
     std::vector<Experience> replay_buffer;

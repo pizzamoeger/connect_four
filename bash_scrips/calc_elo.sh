@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # the new bot
-# new_file=$1
+directories=("$1")
 
 # get a list of all files in the directories
-directories=("data/DQN/games")
+#directories=("data/DQN/games/")
 #  "RANDOM" "ALMOST_RANDOM" "DQL"
 
 files=()
 for directory in "${directories[@]}"; do
     # add all files that are not RANKING.txt or RANKING.svg
     while IFS= read -r -d $'\0' file; do
-        if [[ $file == $directory"/RANKING."* ]]; then
+        if [[ $file == $directory"RANKING."* ]]; then
             continue
         fi
         files+=("$file")

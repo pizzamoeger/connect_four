@@ -67,9 +67,7 @@ int main() {
     std::vector<int> sel = {0, 0};
     std::shared_ptr<Screen> screen = std::make_shared<Menu_screen>(sel);
 
-    if (!screen->init_all()) { // TODO ???
-        return 0;
-    }
+    if (!screen->init_all()) return 0;
 
     // wait for user to select what mode
     int status = screen->loop();
@@ -84,8 +82,6 @@ int main() {
 
     int game_state = status; // so that game can be restarted
 
-    int counter = 0; // COUNTER IS FOR GETTING INITIAL ELOS
-    // FIND-TAG-COUNTER
     while (true) {
         // clear screen
         SDL_RenderClear(screen->renderer);
@@ -108,17 +104,11 @@ int main() {
 
         status = screen->CONTINUE;
         while (status == screen->CONTINUE) status = screen->loop();
-        if (status == screen->EXIT) {
-            screen->close_all();
-            return 0;
-        }
+        if (status == screen->EXIT) break
 
         // start alternating between players
         swap(screen->playerfile_1, screen->playerfile_2);
         game_state = (game_state%SELECTIONS)*SELECTIONS + game_state/SELECTIONS;
-
-        counter++;
-        // std::cerr << counter << "\n";
     }
     screen->close_all();
     return 0;

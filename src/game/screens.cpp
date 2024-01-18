@@ -142,8 +142,7 @@ int Connect_four_screen::loop() {
     set_col(renderer, WHITE);
     SDL_RenderPresent(renderer);
 
-    // calculates to 60 fps
-    SDL_Delay(DELAY); // TODO idk wa de linus do meint
+    SDL_Delay(DELAY);
 
     ret = CONTINUE;
 
@@ -151,8 +150,8 @@ int Connect_four_screen::loop() {
 
     // current player is AI
     int col;
-    if (board.turn == 1) col = player_1->get_col(board);
-    else col = player_2->get_col(board);
+    if (board.turn == 1) col = player_1->get_col(board, true);
+    else col = player_2->get_col(board, true);
     pick_col(col);
     ret = play();
 
@@ -222,14 +221,9 @@ void Connect_four_screen::close() {}
 
 void Connect_four_screen::pick_col(int col) {
     // animation for selecting column
-    // FIND-TAG-PICK-COL
-    // board.selected_col = col;
     while (board.selected_col != col) {
         int add = 1;
         if (board.selected_col > col) add = -1;
-
-        // it is thinking really hard // TODO remove or keep
-        //if (rand()%5 == 0) add = -add;
 
         board.selected_col += add;
         if (board.selected_col < 0) board.selected_col = 0;
@@ -246,25 +240,26 @@ void Connect_four_screen::pick_col(int col) {
 
 bool Screen::init_all() {
     if (!init()) {
+        std::cerr << "error initializing screen: " << SDL_GetError() << "\n";
         return 0;
     }
 
     // init SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cerr << "Error initializing SDL: " << SDL_GetError() << "\n";
+        std::cerr << "error initializing SDL: " << SDL_GetError() << "\n";
         return 0;
     }
 
     // init SDL_ttf
     if (TTF_Init() < 0) {
-        std::cerr << "Error initializing SDL_ttf: " << TTF_GetError() << "\n";
+        std::cerr << "error initializing SDL_ttf: " << TTF_GetError() << "\n";
         return 0;
     }
 
     // renderer to render images
     renderer = SDL_CreateRenderer(SDL_CreateWindow("CONNECT FOUR",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,SCREEN_WIDTH, SCREEN_HEIGHT, 0), -1, 0);
     if (renderer == NULL) {
-        std::cerr << "Error initializing SDL renderer: " << SDL_GetError() << "\n";
+        std::cerr << "error initializing SDL renderer: " << SDL_GetError() << "\n";
         return 0;
     }
 
@@ -275,7 +270,7 @@ bool Screen::init_all() {
     return 1;
 }
 
-void Screen::close_all() { // TODO destructor maybe
+void Screen::close_all() {
     close();
 
     // destroy renderer
@@ -431,12 +426,6 @@ int Menu_screen::loop() {
         }
     }
 
-    // FIND-TAG-MENU-SELECTION
-    /* selected = {1, 1};
-    playerfile_1 = get_text();
-    playerfile_2 = get_text();
-    return mode();*/
-
     // updates screen
     SDL_RenderClear(renderer);
     render_screen();
@@ -447,14 +436,12 @@ int Menu_screen::loop() {
 }
 
 std::string Menu_screen::get_text(std::string what) {
-    // FIND-TAG-TEXT-INPUT-START
     SDL_Event event;
     std::string text = "";
     bool quit = false;
 
     // handles events
     while (!quit) {
-        //std::cerr << text << "\n";
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
 
@@ -500,21 +487,16 @@ std::string Menu_screen::get_text(std::string what) {
         set_col(renderer, WHITE);
         SDL_RenderPresent(renderer);
 
-        // calculates to 60 fps
         SDL_Delay(DELAY);
     }
 
     if (what == "ENTER NAME") text = "HUMAN/"+text+".txt";
-    // FIND-TAG-TEXT-INPUT-STOP
-    // std::string text; cin >> text;
 
     return text;
 }
 
 void Menu_screen::render_screen() {
     int w = 250;
-
-    //std::vector<int> y_pos = {SCREEN_HEIGHT/4, 2*SCREEN_HEIGHT/4, 3*SCREEN_HEIGHT/4};
 
     // display buttons
     for (int col = 0; col < 2; col++) {
@@ -528,7 +510,6 @@ void Menu_screen::render_screen() {
             else display_text(text[button].c_str(), (col+1)*2*SCREEN_WIDTH/6, y_pos, TEXT_SIZE, 1, x, w, GREEN);
         }
     }
-    // TODO: maybe vs in middle
 }
 
 int Menu_screen::mode() {

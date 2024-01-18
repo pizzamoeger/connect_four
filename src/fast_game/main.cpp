@@ -29,6 +29,7 @@ int main() {
     std::string file1; std::cin >> file1;
     std::unique_ptr<Player> player_1;
     player_1 = std::move(init_player(file1));
+
     std::string file2; std::cin >> file2;
     std::unique_ptr<Player> player_2;
     player_2 = std::move(init_player(file2));
@@ -44,8 +45,7 @@ int main() {
         board.selected_col = action;
         board.play();
 
-        //board.print();
-        //std::cerr << "\n\n\n";
+	std::cout << board << "\n";
 
         if (board.win() || board.turns == 42) break;
     }

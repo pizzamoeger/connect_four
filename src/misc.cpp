@@ -112,6 +112,7 @@ std::istream& operator>>(std::istream& in, int128& num) {
         cur *= 10;
         cur += c-'0';
     }
+    return in;
 }
 
 std::ostream& operator<<(std::ostream& os, const int128& num) {

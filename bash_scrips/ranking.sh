@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("data/DQN/games")
+directories=("$1")
 
 # Initialize an empty array to store last lines
 last_lines=()
@@ -12,8 +12,7 @@ for directory in "${directories[@]}"; do
     # Use a subshell to capture the output of the inner loop
     # loop through each file in the directory
     while IFS= read -r -d $'\0' file; do
-
-        if [[ $file == $directory"/RANKING."* ]]; then
+	if [[ $file == $directory"RANKING."* ]]; then
             continue
         fi
 

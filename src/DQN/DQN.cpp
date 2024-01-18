@@ -1,10 +1,6 @@
 #include "../game.h"
 
 void DQN::load(std::string filename) {
-    params = get_params();
-    params.training_data_size = batch_size;
-    params.test_data_size = 0;
-
     layer_data* layers;
     main.load(filename, params, layers);
 
@@ -29,6 +25,7 @@ void DQN::load(std::string filename) {
 int DQN::epsilon_greedy(float *out, connect_four_board board, bool eval) {
     float r = (float)(rand()) / (float)(RAND_MAX);
 
+    assert(epsilon == 0 || !eval); // in eval, epsilon should be zero
     if (r < epsilon) {
         std::vector<int> possible_moves;
         for (int i = 0; i < OUTPUT_NEURONS; i++) {
@@ -201,6 +198,7 @@ void DQN::train(int num_games) {
                std::vector<Experience> batch = get_random_batch();
 
                for (auto experience: batch) {
+                   // train experience from batch
                    float *dev_in = get_input(experience.state);
                    float *dev_out = get_output(experience);
 
@@ -221,17 +219,5 @@ void DQN::train(int num_games) {
        }
        epsilon *= epsilon_red;
        epsilon = std::max(epsilon, 0.1f);
-
-        /*for (int l = 0; l < main.L; l++) {
-            float* weights = new float [main.layers[l]->weights_size];
-            cudaMemcpy(weights, main.layers[l]->dev_weights, main.layers[l]->weights_size*sizeof(float), cudaMemcpyDeviceToHost);
-
-            std::cerr << "layer: " << l << ": ";
-            std::cerr << "dev weights: " << main.layers[l]->dev_weights << "\n";
-            for (int w = 0; w < main.layers[l]->weights_size; w++) std::cerr << weights[w] << " ";
-            std::cerr << "\n";
-
-            delete[] weights;
-        }*/
    }
 }
