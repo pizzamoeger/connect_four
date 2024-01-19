@@ -54,7 +54,6 @@ int DQN::epsilon_greedy(float *out, connect_four_board board, bool eval) {
 
 void DQN::save(std::string filename) {
     main.save(filename);
-    std::cerr << filename << "\n";
 
     // save elo
     std::ofstream file;
@@ -185,7 +184,7 @@ void DQN::train(int num_games) {
     for (int game = 0; game < num_games; game++) {
        connect_four_board board;
 
-       if (game%20 == 0) std::cerr << "Game " << game << "\n";
+       //if (game%20 == 0) std::cerr << "Game " << game << "\n";
 
        // play game
        while (true) {

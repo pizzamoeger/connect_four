@@ -104,7 +104,7 @@ int main() {
 
         status = screen->CONTINUE;
         while (status == screen->CONTINUE) status = screen->loop();
-        if (status == screen->EXIT) break
+        if (status == screen->EXIT) break;
 
         // start alternating between players
         swap(screen->playerfile_1, screen->playerfile_2);

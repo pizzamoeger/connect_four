@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DQL="$8"
+DQL="$1"
 MCTS="MCTS/20_20_2.txt"
 MCTS="RANDOM"
 
@@ -8,7 +8,7 @@ MCTS="RANDOM"
 total=0
 
 #echo "$7 $1 $2 $3 $4 $5 $6"
-./$7 $1 $2 $3 $4 $5 $6
+#./$7 $1 $2 $3 $4 $5 $6
 #./train_DQL_conv
 
 #echo "Training done"
@@ -27,14 +27,12 @@ ${MCTS}
 EOF
     )
     ((total += result))
-
     result=$(./fast <<EOF
 ${MCTS}
 ${DQL}
 -1
 EOF
     )
-
     # Accumulate the output to the total sum
     ((total += result))
 done

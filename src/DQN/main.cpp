@@ -1,6 +1,41 @@
 #include "../game.h"
 #include "../neuralnetwork/Network.h"
 
+void convert_argv(int argc, char** argv, DQN& player, int& games, hyperparams& params) {
+    if(argc%2 != 1) {
+        std::cerr << "Invalid commandline arguments. Please check README.md\n";
+        exit(0);
+    }
+
+    for (int arg = 1; arg < argc; arg+=2) {
+        char* key = argv[arg];
+        std::string val = argv[arg+1];
+        // DQN params
+        if (strcmp(key, "c")==0) player.c = atoi(val.c_str());
+        else if (strcmp(key, "batch_size")==0) player.batch_size = atoi(val.c_str());
+        else if (strcmp(key, "games")==0) games = atoi(val.c_str());
+        else if (strcmp(key, "replay_buffer_size")==0) player.replay_buffer_size = atoi(val.c_str());
+        else if (strcmp(key, "discount_factor")==0) player.discount_factor = atof(val.c_str());
+        else if (strcmp(key, "epsilon_red")==0) player.epsilon_red = atof(val.c_str());
+        else if (strcmp(key, "epsilon")==0) player.epsilon = atof(val.c_str());
+        // neural network params
+        else if (strcmp(key, "fcw")==0) params.fully_connected_weights_learning_rate = atof(val.c_str());
+        else if (strcmp(key, "fcb")==0) params.fully_connected_biases_learning_rate = atof(val.c_str());
+        else if (strcmp(key, "cw")==0) params.convolutional_weights_learning_rate = atof(val.c_str());
+        else if (strcmp(key, "cb")==0) params.convolutional_biases_learning_rate = atof(val.c_str());
+        else if (strcmp(key, "fcwr")==0) params.fcWRed = atof(val.c_str());
+        else if (strcmp(key, "fcbr")==0) params.fcBRed = atof(val.c_str());
+        else if (strcmp(key, "cwr")==0) params.convWRed = atof(val.c_str());
+        else if (strcmp(key, "cbr")==0) params.convBRed = atof(val.c_str());
+        else if (strcmp(key, "L2")==0) params.L2_regularization_term = atof(val.c_str());
+        else if (strcmp(key, "momcoef")==0) params.momentum_coefficient = atof(val.c_str());
+        else {
+            std::cout << key << ": no valid key. Please check README.md\n";
+            exit(0);
+        }
+    }
+}
+
 int main(int argc, char** argv) {
 
     // randomness
@@ -21,7 +56,7 @@ int main(int argc, char** argv) {
     layer_data convolutional_layer;
     convolutional_layer.type = LAYER_NUM_CONVOLUTIONAL;
     convolutional_layer.stride_length = 1;
-    convolutional_layer.receptive_field_length = 4;
+    convolutional_layer.receptive_field_length = 2;
     convolutional_layer.activation_function = LEAKY_RELU;
     convolutional_layer.n_out = {-1,-1, 3};
 
@@ -33,32 +68,29 @@ int main(int argc, char** argv) {
     layer_data fully_connected_layer_2;
     fully_connected_layer_2.type = LAYER_NUM_FULLY_CONNECTED;
     fully_connected_layer_2.activation_function = LEAKY_RELU;
-    fully_connected_layer_2.n_out = {30, 1, 1};
-
+    fully_connected_layer_2.n_out = {50, 1, 1};
     // design the network
-    int L = 4;
+    int L = 5;
     layer_data* layers = new layer_data[L];
     layers[0] = input_layer;
     layers[L-1] = output_layer;
-    layers[1] = fully_connected_layer_1;
-    layers[2] = fully_connected_layer_2;
+    layers[1] = convolutional_layer;
+    layers[2] = fully_connected_layer_1;
+    layers[3] = fully_connected_layer_2;
 
     // get hyperparams
     hyperparams params;
-    std::cout << "Enter neural network hyperparams manually? [Y/N (default)] ";
-    char c; std::cin >> c;
-    if (c == 'Y') {
-        std::cout << "fully connected weights eta: "; std::cin >> params.fully_connected_weights_learning_rate;
-        std::cout << "fully connected biases eta: "; std::cin >> params.fully_connected_biases_learning_rate;
-        std::cout << "convolutional weights eta: "; std::cin >> params.convolutional_weights_learning_rate;
-        std::cout << "convolutional biases eta: "; std::cin >> params.convolutional_biases_learning_rate;
-        std::cout << "fully connected weights eta reduction: "; std::cin >> params.fcWRed;
-        std::cout << "fully connected biases eta reduction: "; std::cin >> params.fcBRed;
-        std::cout << "convolutional weights eta reduction: "; std::cin >> params.convWRed;
-        std::cout << "convolutional biases eta reduction: "; std::cin >> params.convBRed;
-        std::cout << "L2 regularization: "; std::cin >> params.L2_regularization_term;
-        std::cout << "momentum coefficient: "; std::cin >> params.momentum_coefficient;
-    }
+
+    // init DQN stuff
+    player.batch_size = 8;
+    int train_games = 1024;
+    player.c = train_games/8;
+    player.replay_buffer_size = 3000000;
+    player.discount_factor = 0.95;
+    player.epsilon_red = 0.99;
+    player.epsilon = 1.0;
+
+    convert_argv(argc, argv, player, train_games, params);
 
     // init networks
     player.main.init(layers, L, params);
@@ -69,27 +101,6 @@ int main(int argc, char** argv) {
         cudaMemcpy(player.target.layers[l]->dev_biases, player.main.layers[l]->dev_biases, player.main.layers[l]->biases_size * sizeof(float), cudaMemcpyDeviceToDevice);
     }
 
-    // init DQN stuff
-    player.batch_size = 1;
-    player.c = 16;
-    int train_games = 1024;
-    player.replay_buffer_size = 3000000;
-    player.discount_factor = 0.95;
-    player.epsilon_red = 0.99;
-    player.epsilon = 1.0;
-
-    std::cout << "Enter DQN hyperparams manually? [Y/N (default)] ";
-    std::cin >> c;
-    if (c == 'Y') {
-        std::cout << "Batch size: "; std::cin >> player.batch_size;
-        std::cout << "replay buffer size: "; std::cin >> player.replay_buffer_size;
-        std::cout << "c: "; std::cin >> player.c;
-        std::cout << "trainings games: "; std::cin >> train_games;
-        std::cout << "discount factor: "; std::cin >> player.discount_factor;
-        std::cout << "epsilon: "; std::cin >> player.epsilon;
-        std::cout << "epsilon reduction: "; std::cin >> player.epsilon_red;
-    }
-
     player.replay_buffer_counter = 0;
     player.replay_buffer.resize(player.replay_buffer_size);
 
@@ -97,17 +108,9 @@ int main(int argc, char** argv) {
     player.train(train_games);
 
     // save network
-    // FIND-TAG-STORING
-    //std::cerr << "Where should the network be stored? "; std::string filename; std::cin >> filename;
-    std::string filename = "data/DQN/architecture/fc_";
-    filename += std::to_string(player.batch_size);
-    filename += "_" + std::to_string(player.c);
-    filename += "_" + std::to_string(train_games);
-    filename += ".txt";
-
-    player.save(filename);
-    std::ofstream file;
-    std::cerr << "saved DQN at " << filename << "\n";
+    std::string filename; std::cin >> filename;
+    player.save("data/DQN/"+filename);
+    std::cerr << "successfully saved DQN at " << filename << "\n";
 
     // free up memory
     player.main.clear();
@@ -115,5 +118,5 @@ int main(int argc, char** argv) {
     delete[] layers;
 
     cudaDeviceReset();
-    std::cout << cudaGetErrorString(cudaPeekAtLastError()) << "\n";
+    std::cout << "CUDA error: " << cudaGetErrorString(cudaPeekAtLastError()) << "\n";
 }

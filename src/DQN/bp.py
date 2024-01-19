@@ -7,18 +7,26 @@ print(os.getcwd())
 base = 1.5
 
 #fcw, fcb, cnw, cnb, l2, mom
-params = [-20, -7, -20, -7, -100000, -100000]
+params = [-20, -20, -20, -20, -100000, -100000]
 names = ["fully connected weight learning rate", "fully connected bias learning rate", "convolutional weight learning rate", "convolutional bias learning rate", "l2", "mom"]
+keys = ["fcw", "fcb", "cw", "cb", "L2", "momcoef"]
 
-s = 35
-st = [10, 10, 3, 3]
+s = 20
+st = [10, 5, 3]
 
-testfile = 'train_DQL_b1024'
-name = 'DQL/fc_1024_15_100.txt'
+testfile = './train_DQN'
+name = 'DQN/architecture/fc_8_128_1024.txt'
 
 def evaluate():
-    process = subprocess.Popen(['./bash_scripts/eval_dqn.sh'] + [str(base**a) for a in params] + [testfile] + [name], stdout=subprocess.PIPE)
+    commandline_args = []
+    for i in range(len(params)):
+        commandline_args.append(keys[i])
+        commandline_args.append(str(base**params[i]))
 
+    process = subprocess.Popen([testfile] + [a for a in commandline_args], stdout=subprocess.PIPE)
+    output, _ = process.communicate()
+
+    process = subprocess.Popen(['./bash_scripts/eval_dqn.sh'] + [name], stdout=subprocess.PIPE)
     output, _ = process.communicate()
 
     output = output.decode()

@@ -7,13 +7,13 @@ int main(int argc, char* argv[]) {
     if (argc > 1) { // train mcts
         // check if there are 4 arguments
         if (argc != 5) {
-            std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+            std::cerr << "Invalid commandline arguments. Please check README.md\n";
             return 0;
         }
 
         // check if first argument is 0 or 1
         if (argv[1][0] != '0' && argv[1][0] != '1') {
-            std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+            std::cerr << "Invalid commandline arguments. Please check README.md\n";
             return 0;
         }
 
@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
         for (int i = 2; i < 5; i++) {
             for (char c : std::string(argv[i])) {
                 if (c < '0' || c > '9') {
-                    std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+                    std::cerr << "Invalid commandline arguments. Please check README.md\n";
                     return 0;
                 }
             }
@@ -51,6 +51,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    std::cerr << "usage: ./train_MCTS <random_roll_out (1/0)> <num_roll_outs> <iterations> <num_games>\n";
+    std::cerr << "Invalid commandline arguments. Please check README.md\n";
     return 0;
 }
