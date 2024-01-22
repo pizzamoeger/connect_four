@@ -34,7 +34,7 @@ int main() {
     std::unique_ptr<Player> player_2;
     player_2 = std::move(init_player(file2));
 
-    int DQN_PLAYER; std::cin >> DQN_PLAYER;
+    //int DQN_PLAYER; std::cin >> DQN_PLAYER;
 
     while (true) {
         int action;
@@ -45,7 +45,7 @@ int main() {
         board.selected_col = action;
         board.play();
 
-	    //std::cout << board << "\n";
+	    std::cout << board << "\n";
 
         if (board.win() || board.turns == 42) break;
     }
@@ -59,5 +59,5 @@ int main() {
     player_1->save("data/"+file1);
     player_2->save("data/"+file2);
 
-    std::cout << (board.turn==DQN_PLAYER?-1:1) << "\n";
+    //std::cout << (board.turn==DQN_PLAYER?-1:1) << "\n";
 }

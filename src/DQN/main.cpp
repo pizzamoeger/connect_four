@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     // design layers
     layer_data input_layer;
     input_layer.type = LAYER_NUM_INPUT;
-    input_layer.n_out = {INPUT_NEURONS_H, INPUT_NEURONS_W, 1};
+    input_layer.n_out = {INPUT_NEURONS_W, INPUT_NEURONS_H, INPUT_NEURONS_FEATURE_MAPS};
 
     layer_data output_layer;
     output_layer.type = LAYER_NUM_FULLY_CONNECTED;
@@ -56,35 +56,37 @@ int main(int argc, char** argv) {
     layer_data convolutional_layer;
     convolutional_layer.type = LAYER_NUM_CONVOLUTIONAL;
     convolutional_layer.stride_length = 1;
-    convolutional_layer.receptive_field_length = 2;
+    convolutional_layer.receptive_field_length = 4;
     convolutional_layer.activation_function = LEAKY_RELU;
     convolutional_layer.n_out = {-1,-1, 3};
 
     layer_data fully_connected_layer_1;
     fully_connected_layer_1.type = LAYER_NUM_FULLY_CONNECTED;
     fully_connected_layer_1.activation_function = LEAKY_RELU;
-    fully_connected_layer_1.n_out = {50, 1, 1};
+    fully_connected_layer_1.n_out = {500, 1, 1};
 
     layer_data fully_connected_layer_2;
     fully_connected_layer_2.type = LAYER_NUM_FULLY_CONNECTED;
     fully_connected_layer_2.activation_function = LEAKY_RELU;
-    fully_connected_layer_2.n_out = {50, 1, 1};
+    fully_connected_layer_2.n_out = {300, 1, 1};
     // design the network
     int L = 5;
     layer_data* layers = new layer_data[L];
     layers[0] = input_layer;
     layers[L-1] = output_layer;
-    layers[1] = convolutional_layer;
-    layers[2] = fully_connected_layer_1;
+    layers[1] = fully_connected_layer_2;
+    layers[2] = fully_connected_layer_2;
     layers[3] = fully_connected_layer_2;
+    std::string filename;// std::cin >> filename;
+    filename = "architecture/fc_300_300_300";
 
     // get hyperparams
     hyperparams params;
 
     // init DQN stuff
     player.batch_size = 8;
-    int train_games = 1024;
-    player.c = train_games/8;
+    int train_games = 1024*8;
+    player.c = 42;
     player.replay_buffer_size = 3000000;
     player.discount_factor = 0.95;
     player.epsilon_red = 0.99;
@@ -92,14 +94,14 @@ int main(int argc, char** argv) {
 
     convert_argv(argc, argv, player, train_games, params);
 
+    cudaMalloc(&player.dev_discount_factor, sizeof(float));
+    cudaMemcpy(player.dev_discount_factor, &player.discount_factor, sizeof(float), cudaMemcpyHostToDevice);
+
     // init networks
     player.main.init(layers, L, params);
     player.target.init(layers, L, params);
 
-    for (int l = 0; l < L; l++) {
-        cudaMemcpy(player.target.layers[l]->dev_weights, player.main.layers[l]->dev_weights, player.main.layers[l]->weights_size * sizeof(float), cudaMemcpyDeviceToDevice);
-        cudaMemcpy(player.target.layers[l]->dev_biases, player.main.layers[l]->dev_biases, player.main.layers[l]->biases_size * sizeof(float), cudaMemcpyDeviceToDevice);
-    }
+    player.copy_main_to_target();
 
     player.replay_buffer_counter = 0;
     player.replay_buffer.resize(player.replay_buffer_size);
@@ -108,7 +110,6 @@ int main(int argc, char** argv) {
     player.train(train_games);
 
     // save network
-    std::string filename; std::cin >> filename;
     player.save("data/DQN/"+filename);
     std::cerr << "successfully saved DQN at " << filename << "\n";
 
@@ -116,6 +117,13 @@ int main(int argc, char** argv) {
     player.main.clear();
     player.target.clear();
     delete[] layers;
+    cudaFree(player.dev_discount_factor);
+    for (int exp = 0; exp < player.replay_buffer_size; exp++) {
+        cudaFree(player.replay_buffer[exp].state);
+        cudaFree(player.replay_buffer[exp].action);
+        cudaFree(player.replay_buffer[exp].reward);
+        cudaFree(player.replay_buffer[exp].new_state);
+    }
 
     cudaDeviceReset();
     std::cout << "CUDA error: " << cudaGetErrorString(cudaPeekAtLastError()) << "\n";

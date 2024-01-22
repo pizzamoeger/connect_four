@@ -25,10 +25,10 @@ enum {
 };
 
 struct hyperparams {
-    float convolutional_weights_learning_rate = 0.01;
-    float convolutional_biases_learning_rate = 0.01;
-    float fully_connected_weights_learning_rate = 0.01;
-    float fully_connected_biases_learning_rate = 0.01;
+    float convolutional_weights_learning_rate = 0.00007;
+    float convolutional_biases_learning_rate = 0.000069;
+    float fully_connected_weights_learning_rate = 0.00007;
+    float fully_connected_biases_learning_rate = 0.00007;
 
     float convWRed = 0;
     float convBRed = 0;
@@ -48,8 +48,9 @@ struct hyperparams {
 
 #define INPUT_NEURONS_W 7
 #define INPUT_NEURONS_H 6
+#define INPUT_NEURONS_FEATURE_MAPS 2
 #define OUTPUT_NEURONS INPUT_NEURONS_W
-#define INPUT_NEURONS INPUT_NEURONS_W*INPUT_NEURONS_H
+#define INPUT_NEURONS INPUT_NEURONS_W*INPUT_NEURONS_H*INPUT_NEURONS_FEATURE_MAPS
 #define DEL '/'
 
 // FIND-TAG-N
@@ -201,6 +202,7 @@ inline __device__ int get_fully_connected_weight_index_dev (int neuron, int prev
 __global__ void set_delta (float* delta, float* activations, float* out, int* cost_func);
 __global__ void update (float* biases_vel, float* weights_vel, float* weights_updt, float* biases_updt, float* weights, float* biases, hyperparams* params, int* stride_length = NULL, network_data* n_out = NULL);
 __global__ void eval (float* correct, float* output, int* counter, int* size);
+__global__ void get_dqn_out (float* main_output, float* tar_output, float* reward, int* action, float* output, float* discount_factor);
 
 __global__ void set_to (float *vec, float value); // initialize the elements to value
 __global__ void set_to_random (float *vec, float* stddev); // initialize the elements to random value with mean 0 and given stddev
@@ -211,5 +213,7 @@ __global__ void dev_feedforward(float* weights, float* new_a, network_data* n_in
 __global__ void backprop_update_w_b_fc (float* dev_weights_upt, float* dev_delta, float* dev_activations, float* dev_biases_updt, int* data_n_in_x);
 __global__ void backprop_update_w_b_conv (float* dev_weights_upt, float* dev_delta, float* dev_activations, float* dev_biases_updt, network_data* n_in, int* stride_len);
 __global__ void dev_backprop(float* delta, float* dz, float* new_delta, float* weights, network_data* n, int* stride_len = NULL);
+
+std::ostream& operator<<(std::ostream& os, const Network& network);
 
 #endif

@@ -23,11 +23,11 @@ struct connect_four_board {
     friend std::ostream& operator<<(std::ostream& os, const connect_four_board& board);
 };
 
-struct Experience {
-    connect_four_board state;
-    int action;
-    float reward;
-    connect_four_board new_state;
+struct Dev_experience {
+    float* state;
+    int* action;
+    float* reward;
+    float* new_state;
 };
 
 struct Player {
@@ -85,15 +85,16 @@ struct DQN : public Player {
     int replay_buffer_size = 16;
     int replay_buffer_counter = 0;
     float discount_factor = 0.95;
+    float* dev_discount_factor;
 
-    std::vector<Experience> replay_buffer;
+    std::vector<Dev_experience> replay_buffer;
 
     int epsilon_greedy(float* out, connect_four_board board, bool eval);
     float* get_input(connect_four_board board);
-    float* get_output(Experience exp);
-    std::vector<Experience> get_random_batch();
-    Experience get_experience(connect_four_board board, int action);
-    void store_in_replay_buffer(Experience exp);
+    float* get_output(Dev_experience exp);
+    std::vector<Dev_experience> get_random_batch();
+    Dev_experience get_experience(connect_four_board board, int action);
+    void store_in_replay_buffer(Dev_experience exp);
     void copy_main_to_target();
     float* feedforward(connect_four_board board, Network& net);
 

@@ -4,9 +4,9 @@ n=3
 # run entire script n times
 for ((i = 0; i < n; i++))
 do
-      sed -i -e '/\/\/ FIND-TAG-FILENAME/{n; r /dev/stdin' -e 'd;}' src/MCTS/main.cpp <<EOF
-        filename += ".txt$i";
-EOF
+      #sed -i -e '/\/\/ FIND-TAG-FILENAME/{n; r /dev/stdin' -e 'd;}' src/DQN/main.cpp <<EOF
+      #  filename += ".txt$i";
+#EOF
     fact=1
     for ((k = 1; k <= fact; k++))
     do

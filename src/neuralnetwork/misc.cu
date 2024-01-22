@@ -379,3 +379,25 @@ __global__ void backprop_update_w_b_conv (float* dev_weights_upt, float* dev_del
         dev_biases_updt[map] += sum[tid];
     }
 }
+
+__global__ void get_dqn_out (float* main_output, float* tar_output, float* reward, int* action, float* output, float* discount_factor) {
+    if (blockIdx.x != 0 || threadIdx.x != 0) return;
+
+    float output_goal;
+    if (abs(*reward) == 1.0) output_goal = *reward; // game is won or illegal move
+    else {
+        // get max of target out
+        float max_out = 0;
+        for (int i = 0; i < gridDim.x; i++) {
+            if (tar_output[i] > max_out || i == 0) max_out = tar_output[i];
+        }
+
+        output_goal = (*reward) - (*discount_factor) * max_out;
+    }
+
+    for (int i = 0; i < gridDim.x; i++) {
+        if (i == (*action)) output[i] = output_goal;
+        else output[i] = main_output[i];
+    }
+
+}

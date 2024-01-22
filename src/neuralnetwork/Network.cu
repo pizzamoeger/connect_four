@@ -5,6 +5,32 @@ __constant__ int zero = 0;
 int* zero_pointer;
 float* f_zero_pointer;
 
+std::ostream& operator<<(std::ostream& os, const Network& network) {
+    os << "Network with " << network.L << " layers:\n";
+    for (int i = 0; i < network.L; i++) {
+        float* weights;
+        cudaMemcpy(weights,  network.layers[i]->dev_weights, network.layers[i]->weights_size*sizeof(float), cudaMemcpyDeviceToHost);
+        float* biases;
+        cudaMemcpy(biases,  network.layers[i]->dev_biases, network.layers[i]->biases_size*sizeof(float), cudaMemcpyDeviceToHost);
+
+        os << "\tLayer " << i << ":\n";
+        os << "\t\tWeights of size " << network.layers[i]->weights_size <<":\n\t\t";
+        for (int j = 0; j < network.layers[i]->weights_size; j++) {
+            os << weights[j] << ", ";
+        }
+        os << "\b\b\n\t\tBiases:\n\t\t";
+        for (int j = 0; j < network.layers[i]->biases_size; j++) {
+            os << biases[j] << ", ";
+        }
+        os << "\b\b\n";
+
+        delete [] weights;
+        delete [] biases;
+    }
+    os << "\n\n";
+    return os;
+}
+
 Network::Network() {
     cudaGetSymbolAddress((void**) &zero_pointer, zero);
     cudaGetSymbolAddress((void**) &f_zero_pointer, zero);

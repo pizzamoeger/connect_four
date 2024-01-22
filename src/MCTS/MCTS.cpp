@@ -15,12 +15,11 @@ void MCTS::run(connect_four_board board) {
         board = old_board;
         select(board);
 
-        if (board.win() || board.turns == INPUT_NEURONS) {
+        if (board.win() || board.turns == INPUT_NEURONS_W*INPUT_NEURONS_H) {
             int result = board.win()*num_roll_outs; // win every time
             backup(board.game_state, result);
             continue;
         }
-
         expand(board);
         int result = 0;
 
@@ -67,7 +66,7 @@ void MCTS::select(connect_four_board &board) {
         board.selected_col = best_col;
         board.play(); // play selected move
 
-        if (board.win() || board.turns == INPUT_NEURONS) { // game ended
+        if (board.win() || board.turns == INPUT_NEURONS_W*INPUT_NEURONS_H) { // game ended
             return;
         }
     }
@@ -89,7 +88,7 @@ void MCTS::expand(connect_four_board &board) {
 
 int MCTS::roll_out(connect_four_board board, Player* player) {
 
-    while (!board.win() && board.turns < INPUT_NEURONS) { // simulate until game ends
+    while (!board.win() && board.turns < INPUT_NEURONS_W*INPUT_NEURONS_H) { // simulate until game ends
         board.selected_col = player->get_col(board, false);
         board.play();
     }
@@ -201,7 +200,7 @@ void MCTS::train(int num_games) {
             board.selected_col = col;
             board.play();
 
-            if (board.win() || board.turns == INPUT_NEURONS) break;
+            if (board.win() || board.turns == INPUT_NEURONS_W*INPUT_NEURONS_H) break;
         }
     }
 }

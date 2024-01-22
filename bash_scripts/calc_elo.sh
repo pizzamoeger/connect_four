@@ -42,7 +42,7 @@ do
       new_file_new=${new_file#$prefix}
       shuf_file_new=${suffled_files[j]#$prefix}
 
-      #echo "${new_file_new} and ${shuf_file_new}"
+      echo "${new_file_new} and ${shuf_file_new}"
 
       # run connect_four, giving file[0] and file[j] as input
       ./fast  <<EOF
