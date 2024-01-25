@@ -21,7 +21,6 @@ int main() {
             playerfile = "Random Bot";
             player = std::make_unique<Random>();
         }
-        //std::cerr << "loaded " << playerfile << "\n";
         player->load("data/"+playerfile);
         return player;
     };
@@ -42,8 +41,6 @@ int main() {
         // execute action
         board.selected_col = action;
         board.play();
-
-	    std::cout << board << "\n";
 
         if (board.win() || board.turns == 42) break;
     }

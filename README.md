@@ -20,9 +20,10 @@ The neural network is implemented in CUDA, which requires a NVIDIA GPU.
 
 ## Compiling and running
 To compile, you can simply run `cmake CmakeList.txt` and `make`.
-It will produce three executables. 
+It will produce four executables. 
 
 The `connect_four` executable is for playing the game. It requires no command-line arguments. 
+The `fast` executable takes to filenames as input and is meant for the evaluation of the players. It plays the game with the given two files as players. 
 
 The `train_MCTS` executable is for training the MCTS. It requires four command-line arguments and should be run like this: 
 `./train_MCTS <random simulate (0/1)> <#simulations> <#iterations> <#games>`. 
@@ -60,10 +61,10 @@ The relative path from the `data/DQN/` directory has to be entered.
 If you ran the program without any arguments, a window will open. You can select the first player (manual or computer) by using the arrow key and then pressing enter. 
 Now you will either be prompted for your name, which is pretty straight forward, or the file in which the artificial player is stored. For this you have the following options:
 * Random: enter `RANDOM/bot.txt`
-* Almost Random: enter `ALMOST_RANDOM/bot.txt`
+* With minimal logic: enter `ALMOST_RANDOM/bot.txt`
 * MCTS: enter `MCTS/(r_)<#simulations>_<#iterations>_<#games>.txt`
-  * Note that if there is an r it means that the simulate of the MCTS is completely random.
-* DQN: enter the relative path to your file from `data/`
+  * Note that if there is an r it means that the simulation of the MCTS is completely random.
+* DQN: enter the relative path to your DQN file from `data/`
 
 After entering the name or file, you have press enter again and can select the second player in the same way.
 
@@ -75,4 +76,17 @@ At any time, you can quit by clicking the x in the top right corner.
 
 ## ELO
 
-I added a simple ELO system. You can see the ranking by running `./ranking.sh`.
+For comparing the players, there is an elo system implemented. You can see the ranking of all players by running `./ranking.sh`.
+
+## bash scripts
+
+There are some bash scripts for automation. 
+
+You can create different MCTS players by using the `create_mcts.sh` script. It was used for generating the MCTS that were used in my paper. 
+
+The `create_dqn.sh` script can be used for creating different DQN players and was also used for my paper. 
+
+The `ranking.sh` script can be used to generate a ranking of the players. 
+
+The last two scripts, `calc_elo.sh` and `reset_elo.sh` can be used for calculating the elo of players and resetting the elo respectively. 
+Both of them require you to specify in which directory the elo should be calculated or reset.
