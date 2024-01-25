@@ -1,10 +1,9 @@
 #include "../game.h"
 
 int main(int argc, char* argv[]) {
-    // init random seed
     srand(time(NULL));
 
-    if (argc > 1) { // train mcts
+    if (argc > 1) {
         // check if there are 4 arguments
         if (argc != 5) {
             std::cerr << "Invalid commandline arguments. Please check README.md\n";
@@ -30,18 +29,18 @@ int main(int argc, char* argv[]) {
         std::cerr << "training MCTS...\n";
         MCTS mcts;
 
-        mcts.random_roll_out = atoi(argv[1]);
-        mcts.num_roll_outs = atoi(argv[2]);
+        mcts.random_simulation = atoi(argv[1]);
+        mcts.simulations = atoi(argv[2]);
         mcts.iterations = atoi(argv[3]);
         int num_games = atoi(argv[4]);
 
         mcts.training = true;
         mcts.train(num_games);
 
-        std::string filename = "data/MCTS_plot/games/";
-        if (mcts.random_roll_out) filename += "r_";
+        std::string filename = "data/MCTS/";
+        if (mcts.random_simulation) filename += "r_";
 
-        filename += std::to_string(mcts.num_roll_outs);
+        filename += std::to_string(mcts.simulations);
         filename += "_"+std::to_string(mcts.iterations);
         filename += "_"+std::to_string(num_games);
         filename += ".txt";

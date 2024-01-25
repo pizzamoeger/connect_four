@@ -136,7 +136,6 @@ int Connect_four_screen::loop() {
     }
 
     // updates screen
-    // FIND-TAG-RENDER-SCREEN-1
     SDL_RenderClear(renderer);
     render_board();
     set_col(renderer, WHITE);
@@ -163,7 +162,6 @@ int Connect_four_screen::play() {
     if (board.selected_row >= 0) {
 
         // animation for falling of tile
-        // FIND-TAG-FALLING
         falling();
 
         // updates the board
@@ -171,7 +169,6 @@ int Connect_four_screen::play() {
 
         // checks game is over
         if (board.win() || board.turns == 42) {
-            // FIND-TAG-RENDER-SCREEN-2
             SDL_RenderClear(renderer);
             render_board();
             SDL_RenderPresent(renderer);
@@ -361,9 +358,9 @@ int End_screen::loop() {
                 break;
         }
     }
+
     SDL_Delay(DELAY);
 
-    // FIND-TAG-END
     return CONTINUE;
 }
 

@@ -33,8 +33,7 @@ struct Dev_experience {
 struct Player {
     float elo = 1000.0;
 
-    // Eval specifies whether the action should be selected to be optimal for evaluation or optimal
-    // for training. schlechte kommentar aber egal
+    // eval specifies whether player is currently being evaluated or trained
     virtual int get_col(connect_four_board board, bool eval) = 0;
     virtual void load(std::string filename) = 0;
     virtual void save(std::string filename) = 0;
@@ -42,28 +41,26 @@ struct Player {
 };
 
 struct MCTS : public Player {
-    std::map<int128, float> wins;
+    std::map<int128, int> wins;
     std::map<int128, int> sims;
 
-    std::map<int128, float> init_wins;
+    std::map<int128, int> init_wins;
     std::map<int128, int> init_sims;
     bool training = false;
 
-    bool random_roll_out = true;
-    int num_roll_outs = 100;
+    bool random_simulation = true;
+    int simulations = 100;
     int iterations = 100;
-
     float c = sqrt(2.0f);
-    float discount_factor = 1; // TODO: this is not functional yet
 
-    float UCT(int128 v, int128 p);
+    float UCB1(int128 v, int128 p);
     int128 get_parent(int128 v);
 
     void run(connect_four_board board);
     void select(connect_four_board &board);
     void expand(connect_four_board &board);
-    int roll_out(connect_four_board board, Player* player);
-    void backup(int128 game_state, float result);
+    int simulate(connect_four_board board, Player* player);
+    void backup(int128 game_state, int result);
 
     int get_best_move(connect_four_board board);
 
@@ -127,7 +124,7 @@ struct Human : public Player {
 
 std::pair<float,float> update_elo(float elo_1, float elo_2, int result);
 
-std::istream& operator>>(std::istream& in, int128& nim);
+std::istream& operator>>(std::istream& in, int128& num);
 std::ostream& operator<<(std::ostream& os, const int128& num);
 
 #endif //CONNECT_FOUR_GAME_H

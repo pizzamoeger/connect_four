@@ -60,56 +60,46 @@ int main(int argc, char** argv) {
     convolutional_layer.activation_function = LEAKY_RELU;
     convolutional_layer.n_out = {-1,-1, 3};
 
-    layer_data fully_connected_layer_1;
-    fully_connected_layer_1.type = LAYER_NUM_FULLY_CONNECTED;
-    fully_connected_layer_1.activation_function = LEAKY_RELU;
-    fully_connected_layer_1.n_out = {500, 1, 1};
+    layer_data fully_connected_layer;
+    fully_connected_layer.type = LAYER_NUM_FULLY_CONNECTED;
+    fully_connected_layer.activation_function = LEAKY_RELU;
+    fully_connected_layer.n_out = {30, 1, 1};
 
-    layer_data fully_connected_layer_2;
-    fully_connected_layer_2.type = LAYER_NUM_FULLY_CONNECTED;
-    fully_connected_layer_2.activation_function = LEAKY_RELU;
-    fully_connected_layer_2.n_out = {300, 1, 1};
     // design the network
-    int L = 5;
+    int L = 3;
     layer_data* layers = new layer_data[L];
     layers[0] = input_layer;
     layers[L-1] = output_layer;
-    layers[1] = fully_connected_layer_2;
-    layers[2] = fully_connected_layer_2;
-    layers[3] = fully_connected_layer_2;
-    std::string filename;// std::cin >> filename;
-    filename = "architecture/fc_300_300_300";
+    layers[1] = convolutional_layer;
 
-    // get hyperparams
+    // init DQN hyperparams
     hyperparams params;
+    player.batch_size = 32;
+    int train_games = 8192;
+    player.c = 2048;
+    player.replay_buffer_size = 9000000;
+    player.discount_factor = 0.99*1.0;
+    player.epsilon_red = 1;
+    player.epsilon = 0.8;
 
-    // init DQN stuff
-    player.batch_size = 8;
-    int train_games = 1024*8;
-    player.c = 42;
-    player.replay_buffer_size = 3000000;
-    player.discount_factor = 0.95;
-    player.epsilon_red = 0.99;
-    player.epsilon = 1.0;
-
+    // read commandline args
     convert_argv(argc, argv, player, train_games, params);
 
     cudaMalloc(&player.dev_discount_factor, sizeof(float));
     cudaMemcpy(player.dev_discount_factor, &player.discount_factor, sizeof(float), cudaMemcpyHostToDevice);
+    player.replay_buffer_counter = 0;
+    player.replay_buffer.resize(player.replay_buffer_size);
 
     // init networks
     player.main.init(layers, L, params);
     player.target.init(layers, L, params);
-
     player.copy_main_to_target();
-
-    player.replay_buffer_counter = 0;
-    player.replay_buffer.resize(player.replay_buffer_size);
 
     // train
     player.train(train_games);
 
     // save network
+    std::string filename; std::cin >> filename;
     player.save("data/DQN/"+filename);
     std::cerr << "successfully saved DQN at " << filename << "\n";
 

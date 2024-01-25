@@ -1,7 +1,6 @@
 #include "../game.h"
 #include "SDL.h"
 
-// memleaks: valgrind --leak-check=full --show-leak-kinds=all cmake-build-release/connect_four
 std::shared_ptr<Screen> switch_screen(std::shared_ptr<Screen> screen, int new_screen, int status) {
     screen->close();
 

@@ -8,9 +8,9 @@ float* f_zero_pointer;
 std::ostream& operator<<(std::ostream& os, const Network& network) {
     os << "Network with " << network.L << " layers:\n";
     for (int i = 0; i < network.L; i++) {
-        float* weights;
+        float* weights = NULL;
         cudaMemcpy(weights,  network.layers[i]->dev_weights, network.layers[i]->weights_size*sizeof(float), cudaMemcpyDeviceToHost);
-        float* biases;
+        float* biases = NULL;
         cudaMemcpy(biases,  network.layers[i]->dev_biases, network.layers[i]->biases_size*sizeof(float), cudaMemcpyDeviceToHost);
 
         os << "\tLayer " << i << ":\n";
@@ -68,7 +68,6 @@ void Network::init(layer_data* layers, int L, hyperparams params) {
         this->layers[l] = move(new_layer);
     }
 
-    // initialize activations and dz
     int elems = this->layers[L-1]->data.elems+OUTPUT_NEURONS;
 
     cudaMalloc((void**) &activations, elems*sizeof(float));
@@ -93,7 +92,6 @@ std::pair<int,int> Network::evaluate(std::vector<std::pair<float*,float*>> test_
     for (int k = 0; k < (int) test_data_size; k++) {
         feedforward(test_data[k].first, activations, derivatives_z);
         cudaDeviceSynchronize();
-        // TODO: this could be made faster but not really necessary, as it's only 10 -> is already fast
         eval<<<1,1>>>(test_data[k].second, &activations[layers[L-1]->data.elems], dev_correct, &layers[L-1]->dev_data->n_out.x);
     }
     cudaDeviceSynchronize();
@@ -110,9 +108,6 @@ void Network::SGD(std::vector<std::pair<float*,float*>> training_data, std::vect
     auto ev = evaluate(test_data, params.test_data_size);
     auto correct = ev.first;
     auto durationEvaluate = ev.second;
-
-    //std::cerr << "fully cocnected weights nabla: " << params.fully_connected_weights_learning_rate << ", ";
-    //std::cerr << "fully cocnected biases nabla: " << params.fully_connected_biases_learning_rate << "\n";
 
     if (params.test_data_size > 0) {
         std::cerr << "0 Accuracy: " << (float) correct / params.test_data_size << " evaluated in " << durationEvaluate << "ms\n";
@@ -149,7 +144,6 @@ void Network::SGD(std::vector<std::pair<float*,float*>> training_data, std::vect
 
        if (params.test_data_size > 0)
            std::cerr << "Accuracy: " << (float) correct / params.test_data_size << ", trained in " << durationTrain << "ms, evaluated in " << durationEvaluate << "ms\n";
-       //else std::cerr << "Trained in " << durationTrain << "ms\n";
 
         // reduce learning rate
 	    if (i < 100) {
@@ -180,7 +174,6 @@ void Network::backprop(float* in, float* out) {
     set_delta<<<OUTPUT_NEURONS,1>>> (layers[L-1]->delta, &activations[layers[L-1]->data.elems], out, &dev_params->cost);
 
     for (int l = L - 1; l >= 1; l--) {
-        //std::cout << "Layer" << l << "\n";
         layers[l]->backprop(activations, derivatives_z);
     }
 }

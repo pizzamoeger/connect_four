@@ -25,9 +25,9 @@ It will produce three executables.
 The `connect_four` executable is for playing the game. It requires no command-line arguments. 
 
 The `train_MCTS` executable is for training the MCTS. It requires four command-line arguments and should be run like this: 
-`./train_MCTS <random simulation (0/1)> <#simulations> <#iterations> <#games>`. 
+`./train_MCTS <random simulate (0/1)> <#simulations> <#iterations> <#games>`. 
 The resulting MCTS will be stored in `data/MCTS/(r_)<#simulations>_<#iterations>_<#games>.txt`, with the `r_` being present if 
-the simulation was random.
+the simulate was random.
 
 The `train_DQN` executable is for training the DQN. You can give optional command-line arguments. 
 Each argument has to be given by a key and a value, which have to be seperated by a space. 
@@ -62,7 +62,7 @@ Now you will either be prompted for your name, which is pretty straight forward,
 * Random: enter `RANDOM/bot.txt`
 * Almost Random: enter `ALMOST_RANDOM/bot.txt`
 * MCTS: enter `MCTS/(r_)<#simulations>_<#iterations>_<#games>.txt`
-  * Note that if there is an r it means that the simulation of the MCTS is completely random.
+  * Note that if there is an r it means that the simulate of the MCTS is completely random.
 * DQN: enter the relative path to your file from `data/`
 
 After entering the name or file, you have press enter again and can select the second player in the same way.

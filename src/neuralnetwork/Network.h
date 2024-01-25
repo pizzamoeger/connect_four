@@ -26,7 +26,7 @@ enum {
 
 struct hyperparams {
     float convolutional_weights_learning_rate = 0.00007;
-    float convolutional_biases_learning_rate = 0.000069;
+    float convolutional_biases_learning_rate = 0.00007;
     float fully_connected_weights_learning_rate = 0.00007;
     float fully_connected_biases_learning_rate = 0.00007;
 

@@ -1,6 +1,6 @@
 #include "../game.h"
 
-float MCTS::UCT(int128 v, int128 p) {
+float MCTS::UCB1(int128 v, int128 p) {
     if (sims.find(v) == sims.end() || sims.find(p) == sims.end() || wins.find(v) == wins.end()) return 0;
     return wins[v]/sims[v] + c*sqrt(log(sims[p])/sims[v]);
 }
@@ -16,7 +16,7 @@ void MCTS::run(connect_four_board board) {
         select(board);
 
         if (board.win() || board.turns == INPUT_NEURONS_W*INPUT_NEURONS_H) {
-            int result = board.win()*num_roll_outs; // win every time
+            int result = board.win() * simulations; // win every time
             backup(board.game_state, result);
             continue;
         }
@@ -24,13 +24,13 @@ void MCTS::run(connect_four_board board) {
         int result = 0;
 
         Player* player;
-        if (random_roll_out) player = new Random();
+        if (random_simulation) player = new Random();
         else player = new Almost_random();
 
-        for (int j = 0; j < num_roll_outs; j++) {
-            int r_out = roll_out(board, player);
-            if (r_out == board.turn) result++;
-            else if (r_out == -board.turn) result--;
+        for (int j = 0; j < simulations; j++) {
+            int res = simulate(board, player);
+            if (res == board.turn) result++;
+            else if (res == -board.turn) result--;
             // else tie
         }
 
@@ -41,17 +41,17 @@ void MCTS::run(connect_four_board board) {
 
 void MCTS::select(connect_four_board &board) {
 
-    while (true) { // loop until leaf node reached
+    while (true) { // loop until node with unvisited children is reached
         int best_col = -1;
         int best_uct = 0;
 
         for (int i = 0; i < 7; i++) {
 
-            if (sims.find(7*board.game_state+i+1) == sims.end() && board.board[0][i] == 0) { // leaf node reached
+            if (sims.find(7*board.game_state+i+1) == sims.end() && board.board[0][i] == 0) { // node has unvisited children
                 return;
             }
 
-            int uct = UCT(7*board.game_state+i+1, board.game_state); // find best UCT value of children
+            int uct = UCB1(7 * board.game_state + i + 1, board.game_state); // find best UCB value of children
             if ((uct > best_uct || best_col == -1) && board.board[0][i] == 0) {
                 best_uct = uct;
                 best_col = i;
@@ -74,7 +74,7 @@ void MCTS::select(connect_four_board &board) {
 
 void MCTS::expand(connect_four_board &board) {
 
-    std::vector<int> unexplored_children; // find all unexplored children
+    std::vector<int> unexplored_children; // find all unvisited children
     for (int i = 0; i < 7; i++) {
         if (sims.find(7*board.game_state+i+1) == sims.end() && board.board[0][i] == 0) {
             unexplored_children.push_back(i);
@@ -86,7 +86,7 @@ void MCTS::expand(connect_four_board &board) {
     board.play();
 }
 
-int MCTS::roll_out(connect_four_board board, Player* player) {
+int MCTS::simulate(connect_four_board board, Player* player) {
 
     while (!board.win() && board.turns < INPUT_NEURONS_W*INPUT_NEURONS_H) { // simulate until game ends
         board.selected_col = player->get_col(board, false);
@@ -99,16 +99,16 @@ int MCTS::roll_out(connect_four_board board, Player* player) {
     return 0;
 }
 
-void MCTS::backup(int128 game_state, float result) {
+void MCTS::backup(int128 game_state, int result) {
     while (game_state != 0) {
         if (sims.find(game_state) == sims.end()) {
             sims[game_state] = 0;
             wins[game_state] = 0;
         }
-        sims[game_state]++;
+        sims[game_state] += simulations;
         wins[game_state] += result;
         game_state = get_parent(game_state);
-        result = -discount_factor*result; // switch result
+        result *= -1; // switch result
     }
     if (sims.find(0) == sims.end()) {
         sims[0] = 0;
@@ -145,17 +145,23 @@ void MCTS::save(std::string filename) {
         wins = init_wins;
     }
 
+    if (sims.empty()) {
+        sims[0] = 1;
+        wins[0] = 0;
+    }
+
     std::ofstream out(filename);
+    out << sims.size() << "\n";
     for (auto [k, v] : sims) {
-        out << k << ":" << v << " ";
+        out << k << " " << v << " ";
     }
     out << "\n";
     for (auto [k, v] : wins) {
-        out << k << ":" << int(v) << " ";
+        out << k << " " << v << " ";
     }
     out << "\n";
 
-    out << random_roll_out << " " << num_roll_outs << " " << iterations << " " << c << " " << discount_factor << "\n";
+    out << random_simulation << " " << simulations << " " << iterations << " " << c << "\n";
     out << elo << "\n";
     out.close();
 }
@@ -163,8 +169,9 @@ void MCTS::save(std::string filename) {
 void MCTS::load(std::string filename) {
     std::ifstream in(filename);
 
+    int size; in >> size;
     for (int i = 0; i < 2; i++) {
-        while(true) {
+        for (int elem = 0; elem < size; elem++) {
             int128 key = 0;
             int val = 0;
             in >> key;
@@ -172,25 +179,19 @@ void MCTS::load(std::string filename) {
 
             if (i == 0) init_sims[key] = val;
             else init_wins[key] = val;
-
-            char c;
-            in >> c; in >> c;
-            if (c == '\n') break;
-            in.seekg(-1, in.cur);
         }
     }
 
-    in >> random_roll_out >> num_roll_outs >> iterations >> c >> discount_factor;
+    in >> random_simulation >> simulations >> iterations >> c;
     in >> elo;
-    in.close();
 
     wins = init_wins;
     sims = init_sims;
 }
 
 void MCTS::train(int num_games) {
-    for (int i = 0; i < num_games; i++) {
-        if (i % 20 == 0) std::cerr << "Game: " << i << "\n";
+    for (int game = 0; game < num_games; game++) {
+        if (game % 20 == 0) std::cerr << "Training in game " << game << "...\n";
 
         connect_four_board board;
 
@@ -205,7 +206,6 @@ void MCTS::train(int num_games) {
     }
 }
 
-// TODO make it not give warning
 int MCTS::get_col(connect_four_board board, bool eval) {
     run(board);
     return get_best_move(board);

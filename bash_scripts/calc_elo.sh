@@ -4,7 +4,7 @@
 directories=("$1")
 
 # get a list of all files in the directories
-#directories=("data/DQN/games/")
+#directories=("data/DQN/" "data/MCTS" "data/RANDOM" "data/ALMOST_RANDOM")
 #  "RANDOM" "ALMOST_RANDOM" "DQL"
 
 files=()

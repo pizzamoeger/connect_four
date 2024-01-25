@@ -25,8 +25,10 @@ void DQN::load(std::string filename) {
 int DQN::epsilon_greedy(float *out, connect_four_board board, bool eval) {
     float r = (float)(rand()) / (float)(RAND_MAX);
 
-    //assert(epsilon == 0 || !eval); // in eval, epsilon should be zero
+    assert(epsilon == 0 || !eval); // in eval, epsilon should be zero
+
     if (r < epsilon) {
+        // return random possible move
         std::vector<int> possible_moves;
         for (int i = 0; i < OUTPUT_NEURONS; i++) {
             board.selected_col = i;
@@ -35,6 +37,7 @@ int DQN::epsilon_greedy(float *out, connect_four_board board, bool eval) {
         }
        return possible_moves[rand()%possible_moves.size()];
     } else {
+        // return best move if eval = false and best possible move if eval = true
         std::vector<int> max_indices;
         int max_index = -1;
         for (int neuron = 0; neuron < OUTPUT_NEURONS; neuron++) {
@@ -83,9 +86,11 @@ float* DQN::get_input(connect_four_board board) {
 }
 
 float* DQN::get_output(Dev_experience exp) {
+    // get device output for state and new state
     main.feedforward(exp.state, main.activations, main.derivatives_z);
     target.feedforward(exp.new_state, target.activations, target.derivatives_z);
 
+    // calculate corresponding output on device
     float* dev_out;
     cudaMalloc(&dev_out, OUTPUT_NEURONS*sizeof(float));
     get_dqn_out<<<OUTPUT_NEURONS,1>>> (&main.activations[main.layers[main.L-1]->data.elems], &target.activations[target.layers[target.L-1]->data.elems], exp.reward, exp.action, dev_out, dev_discount_factor);
@@ -93,13 +98,13 @@ float* DQN::get_output(Dev_experience exp) {
 }
 
 float* DQN::feedforward(connect_four_board board, Network& net) {
-    // get input
+    // get input for device
     float* in = get_input(board);
 
     // feedforward
     net.feedforward(in, net.activations, net.derivatives_z);
 
-    // get output
+    // get output of network
     float* out = new float[OUTPUT_NEURONS];
     cudaMemcpy(out, &net.activations[net.layers[net.L-1]->data.elems], OUTPUT_NEURONS*sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -108,13 +113,13 @@ float* DQN::feedforward(connect_four_board board, Network& net) {
 }
 
 std::vector<Dev_experience> DQN::get_random_batch() {
-    // get the indices of the possible experiences and shuffle them
+    // get the indices of all experiences and shuffle them
     std::vector<int> indices (std::min(replay_buffer_size,replay_buffer_counter));
     std::iota(indices.begin(), indices.end(), 0);
-
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     shuffle(indices.begin(), indices.end(), std::default_random_engine(seed));
 
+    // create and return first batch_size experiences
     std::vector<Dev_experience> batch (batch_size);
     for (int index = 0; index < batch_size; index++) {
         batch[index] = replay_buffer[indices[index]];
@@ -128,20 +133,24 @@ Dev_experience DQN::get_experience(connect_four_board board, int action) {
     new_board.selected_col = action;
     new_board.play();
 
+    // get device input for state and new state
     float* state = get_input(board);
     float* new_state = get_input(new_board);
 
+    // get device reward
     float reward = 0.0;
+    float* dev_reward;
+
     if (new_board.get_row() < 0) reward = -1.0; // illegal move
     else if (new_board.win()) reward = 1.0; // winning move
 
+    cudaMalloc(&dev_reward, sizeof(float));
+    cudaMemcpy(dev_reward, &reward, sizeof(float), cudaMemcpyHostToDevice);
+
+    // get device action
     int* dev_action;
     cudaMalloc(&dev_action, sizeof(int));
     cudaMemcpy(dev_action, &action, sizeof(int), cudaMemcpyHostToDevice);
-
-    float* dev_reward;
-    cudaMalloc(&dev_reward, sizeof(float));
-    cudaMemcpy(dev_reward, &reward, sizeof(float), cudaMemcpyHostToDevice);
 
     return {state, dev_action, dev_reward, new_state};
 }
@@ -150,6 +159,7 @@ Dev_experience DQN::get_experience(connect_four_board board, int action) {
 void DQN::store_in_replay_buffer(Dev_experience exp) {
     int index = replay_buffer_counter % replay_buffer_size;
 
+    // free memory of experience that is being overwritten
     cudaFree(replay_buffer[index].state);
     cudaFree(replay_buffer[index].action);
     cudaFree(replay_buffer[index].reward);
@@ -160,6 +170,7 @@ void DQN::store_in_replay_buffer(Dev_experience exp) {
 }
 
 int DQN::get_col(connect_four_board board, bool eval) {
+    // get host output of network
     float* out = feedforward(board, main);
 
     // select best action using epsilon greedy
@@ -183,10 +194,10 @@ void DQN::train(int num_games) {
     for (int game = 0; game < num_games; game++) {
        connect_four_board board;
 
-        if (game%20 == 0) std::cerr << "Game " << game << "\n";
+        if (game % 20 == 0) std::cerr << "Training in game " << game << "...\n";
 
-       // play game
        while (true) {
+           // get and store experience
            int action = get_col(board, false);
            Dev_experience exp = get_experience(board, action);
            store_in_replay_buffer(exp);
@@ -197,9 +208,7 @@ void DQN::train(int num_games) {
                for (auto experience: batch) {
                    // train experience from batch
                    float *dev_out = get_output(experience);
-
                    main.SGD({{experience.state, dev_out}}, {});
-
                    cudaFree(dev_out);
                }
            }
@@ -214,6 +223,7 @@ void DQN::train(int num_games) {
 
            if (board.win() || board.turns == INPUT_NEURONS_W*INPUT_NEURONS_H) break;
        }
+       // reduce epsilon
        epsilon *= epsilon_red;
        epsilon = std::max(epsilon, 0.2f);
    }
