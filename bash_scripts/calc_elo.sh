@@ -1,11 +1,6 @@
 #!/bin/bash
 
-# the new bot
 directories=("$1")
-
-# get a list of all files in the directories
-#directories=("data/DQN/" "data/MCTS" "data/RANDOM" "data/ALMOST_RANDOM")
-#  "RANDOM" "ALMOST_RANDOM" "DQL"
 
 files=()
 for directory in "${directories[@]}"; do
@@ -19,7 +14,7 @@ for directory in "${directories[@]}"; do
 done
 files=( $(shuf -e "${files[@]}") )
 
-n=$(( ${#files[@]} * 1 )) # every file plays equal number of games
+n=$(( ${#files[@]} * 1 ))
 for ((i = 0; i < n; i++))
 do
     # shuffle the files
@@ -32,7 +27,7 @@ do
 
     for ((j = 0; j < ${#suffled_files[@]}; j++))
     do
-      # skip if the file only differs in the last char, skip
+      # if the file only differs in the last char, skip
       if [[ ${new_file%?} == ${suffled_files[j]%?} ]]; then
         continue
       fi
@@ -42,21 +37,14 @@ do
       new_file_new=${new_file#$prefix}
       shuf_file_new=${suffled_files[j]#$prefix}
 
-      echo "${new_file_new} and ${shuf_file_new}"
-
-      # run connect_four, giving file[0] and file[j] as input
       ./fast  <<EOF
 ${new_file_new}
 ${shuf_file_new}
 EOF
-
       ./fast  <<EOF
 ${shuf_file_new}
 ${new_file_new}
 EOF
-
-      # ./bash_scrips/ranking.sh
-      # nohup python3 plot.py
 
     done
 done

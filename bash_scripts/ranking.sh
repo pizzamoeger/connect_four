@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("$1")
+directories=("data/MCTS data/DQN data/HUMAN data/ALMOST_RANDOM data/RANDOM")
 
 # Initialize an empty array to store last lines
 last_lines=()
