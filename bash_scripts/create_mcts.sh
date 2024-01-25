@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # c = 2^pot
-pot=10
+pot=1
 c=$((2**pot))
 for ((j = 0; j <= pot; j++))
 do

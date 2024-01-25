@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directories you want to search in
-directories=("data/MCTS data/DQN data/HUMAN data/ALMOST_RANDOM data/RANDOM")
+directories=("data/MCTS" "data/DQN" "data/HUMAN" "data/ALMOST_RANDOM" "data/RANDOM")
 
 # Initialize an empty array to store last lines
 last_lines=()
@@ -29,14 +29,13 @@ IFS=$'\n' sorted=($(sort -nr -t':' -k1 <<<"${last_lines[*]}"))
 unset IFS
 
 i=1
-> $directory"/RANKING.txt"
+> "RANKING.txt"
 for line in "${sorted[@]}"; do
     # split the line into ELO and filename
     IFS=":" read -ra line_array <<< "$line"
     filename="${line_array[1]}"
     ELO="${line_array[0]}"
 
-    # print "$i. $filename: $ELO" into the ranking file
-    echo "$i. $filename: $ELO" >> $directory"/RANKING.txt"
+    echo "$i. $filename: $ELO" >> "RANKING.txt"
     ((i++))
 done

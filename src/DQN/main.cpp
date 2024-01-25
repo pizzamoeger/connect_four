@@ -99,9 +99,10 @@ int main(int argc, char** argv) {
     player.train(train_games);
 
     // save network
+    std::cout << "Please enter relative path from data/DQN/ where file should be stored: ";
     std::string filename; std::cin >> filename;
     player.save("data/DQN/"+filename);
-    std::cerr << "successfully saved DQN at " << filename << "\n";
+    std::cerr << "successfully saved DQN at " << "data/DQN/"+filename << "\n";
 
     // free up memory
     player.main.clear();

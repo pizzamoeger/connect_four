@@ -282,7 +282,7 @@ void Screen::close_all() {
 
 void Screen::display_text(const char* text, int x, int y, int size, bool show_text_field, int start_x, int width, SDL_Color col) {
     // get font
-    font = TTF_OpenFont("01211_AHDSANSB.ttf", size);
+    font = TTF_OpenFont("src/game/font.ttf", size);
     if (font == NULL) {
         std::cerr << "error loading font: " << TTF_GetError() << "\n";
         return;
