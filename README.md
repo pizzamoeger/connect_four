@@ -4,7 +4,7 @@
 This is a C++ Program for playing Connect four. The UI is written in SDL2.
 You can play against a friend or against the computer.
 There are four different algorithms implemented against which can be played. 
-One algorithm acts randomly and one plays optimal if in the next to moves the game can be won. 
+One algorithm acts randomly and one plays optimal if in the next two moves the game can be won. 
 The other two implemented algorithm are MCTS and DQN. 
 
 ## Requirements
